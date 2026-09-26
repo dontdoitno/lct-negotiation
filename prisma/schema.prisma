@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  scenarioId String
+  personaId  String
+  state      Json
+  status     String // active | success | failed | timeout
+  parentId   String?
+  branchTurn Int?
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+  turns      Turn[]
+  debrief    Debrief?
+
+  @@index([userId])
+}
+
+model Turn {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  index       Int
+  playerText  String
+  inputMode   String // voice | text
+  actions     Json
+  deltas      Json
+  stateAfter  Json
+  npcText     String
+  npcAudioUrl String?
+  rationale   String
+  latencyMs   Int
+  createdAt   DateTime @default(now())
+
+  @@unique([sessionId, index])
+}
+
+model Debrief {
+  id                String   @id @default(cuid())
+  sessionId         String   @unique
+  session           Session  @relation(fields: [sessionId], references: [id])
+  outcome           Json
+  stars             Int
+  breakpoints       Json
+  reflectionAnswers Json
+  recommendations   Json
+  createdAt         DateTime @default(now())
+}
+
+model Progress {
+  id        String  @id @default(cuid())
+  userId    String
+  levelId   String
+  bestStars Int     @default(0)
+  attempts  Int     @default(0)
+  unlocked  Boolean @default(false)
+
+  @@unique([userId, levelId])
+}
+
+model CustomScenario {
+  id        String   @id @default(cuid())
+  payload   Json
+  createdAt DateTime @default(now())
+}
