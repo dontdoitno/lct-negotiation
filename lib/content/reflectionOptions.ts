@@ -11,5 +11,9 @@ export const S1_MOTIVATION_OPTIONS = [
 export const CORRECT_MOTIVATION_BY_PERSONA: Record<string, string> = {
   "s1-aggressive": "Ощущение несправедливости: «Почему я делаю больше остальных?»",
   "s1-anxious": "Выгорание и усталость",
-  "s1-rational": "Личные обстоятельства",
+  // Дмитрий's deepest layer ("физически не справляюсь... близок к выгоранию")
+  // lands in the same bucket as anxious — that's what the psychologist's
+  // spec actually says for this persona, not an artifact of picking distinct
+  // buckets per type.
+  "s1-rational": "Выгорание и усталость",
 };

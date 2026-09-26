@@ -55,8 +55,18 @@ ${ACTIONS_DOC}
   ];
 }
 
+// The classifier heuristic is free, instant, and already tuned against the
+// action taxonomy — routing it through a paid LLM call buys nothing but
+// latency and cost, doubling the per-turn API spend for no gain in the
+// product's core reproducibility guarantee. Keep it off by default even
+// when a real provider is configured for the actor; opt in explicitly with
+// ANALYZER_LLM=true if you actually want the model to classify replies too.
+function shouldUseLLM(): boolean {
+  return !isMockMode() && process.env.ANALYZER_LLM === "true";
+}
+
 export async function analyzeTurn(text: string, history: string[]): Promise<AnalysisResult> {
-  if (isMockMode()) return mockAnalyze(text);
+  if (!shouldUseLLM()) return mockAnalyze(text);
 
   const provider = getLLMProvider();
   try {
@@ -83,6 +93,12 @@ interface Rule {
 
 const has = (t: string, ...words: string[]) => words.some((w) => t.includes(w));
 
+// "я подумаю" / "надо подумать" (1st person / infinitive) = stalling —
+// postpone. "давайте подумаем" (1st person plural, "let's think [it over
+// together, right now]") is a collaborative invitation, not postponement —
+// explicitly excluded so it doesn't false-positive on the "подума" stem.
+const isPersonalPostpone = (t: string) => has(t, "подума") && !has(t, "подумаем");
+
 const RULES: Rule[] = [
   { action: "apology", test: (t) => has(t, "извини", "прости", "я был непра", "моя ошибка", "виноват перед") },
   {
@@ -103,10 +119,10 @@ const RULES: Rule[] = [
   {
     action: "postpone_with_deadline",
     test: (t) =>
-      has(t, "подума") &&
+      isPersonalPostpone(t) &&
       has(t, "завтра", "к понедельник", "к пятниц", "через день", "до конца недели", "к среде", "к четвергу"),
   },
-  { action: "postpone_no_deadline", test: (t) => has(t, "подума") },
+  { action: "postpone_no_deadline", test: (t) => isPersonalPostpone(t) },
   {
     action: "commit_fix",
     test: (t) =>

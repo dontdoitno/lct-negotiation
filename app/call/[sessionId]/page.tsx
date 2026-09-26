@@ -10,6 +10,7 @@ import { MetricsPanel } from "@/components/call/MetricsPanel";
 import { MicroFeedback } from "@/components/call/MicroFeedback";
 import { TurnCounter } from "@/components/call/TurnCounter";
 import { ScorePopupStack } from "@/components/call/ScorePopup";
+import { HINTS_CUTOFF_TURN, OPENING_SUGGESTION_CHIPS, resistanceDeltaHint, TURN_HINTS } from "@/lib/content/onboardingHints";
 
 const EXPRESSION_BY_BUCKET = { high: "tense", medium: "neutral", low: "calm" } as const;
 
@@ -20,6 +21,7 @@ export default function CallPage() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [trainingOverride, setTrainingOverride] = useState<boolean | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -60,6 +62,8 @@ export default function CallPage() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [s.transcript]);
+
+  const trainingMode = trainingOverride ?? s.persona?.type === "rational";
 
   useEffect(() => {
     if (s.scorePopups.length === 0) return;
@@ -118,6 +122,11 @@ export default function CallPage() {
   const ss = String(elapsed % 60).padStart(2, "0");
   const ended = s.status !== "active";
 
+  const dynamicHint = trainingMode && s.turn === 1 ? resistanceDeltaHint(s.deltas.R ?? 0) : null;
+  const staticHint = trainingMode && s.turn <= HINTS_CUTOFF_TURN ? TURN_HINTS[s.turn] : undefined;
+  const activeHint = dynamicHint ?? staticHint;
+  const showChips = trainingMode && s.turn === 0 && !ended;
+
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-4 px-4 py-4">
       <div className="flex items-center justify-between">
@@ -125,9 +134,19 @@ export default function CallPage() {
           <span className="rec-dot h-2 w-2 rounded-full bg-resistance" />
           <span className="label-case text-xs text-ink-muted">Сеанс активен</span>
         </div>
-        <span className="font-mono text-xs text-ink-faint">
-          {mm}:{ss}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setTrainingOverride(!trainingMode)}
+            className={`label-case rounded-full border px-3 py-1 text-[10px] font-semibold transition-colors ${
+              trainingMode ? "border-insight/40 bg-insight-soft text-insight" : "border-line text-ink-faint"
+            }`}
+          >
+            Обучающий режим {trainingMode ? "вкл" : "выкл"}
+          </button>
+          <span className="font-mono text-xs text-ink-faint">
+            {mm}:{ss}
+          </span>
+        </div>
       </div>
 
       <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-[1.4fr_1fr]">
@@ -139,6 +158,27 @@ export default function CallPage() {
               <TranscriptBubble key={item.id} item={item} npcName={s.persona!.displayName} />
             ))}
           </div>
+
+          {activeHint && (
+            <div className="rise-in flex items-start gap-2 rounded-md border border-insight/30 bg-insight-soft px-3 py-2.5 text-[13px] leading-relaxed text-ink">
+              <span className="text-insight">💡</span>
+              <span>{activeHint}</span>
+            </div>
+          )}
+
+          {showChips && (
+            <div className="flex flex-wrap gap-2">
+              {OPENING_SUGGESTION_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => setInput(chip)}
+                  className="rounded-full border border-line px-3 py-1.5 text-xs text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="relative flex flex-col gap-2 rounded-lg border border-line bg-panel p-3">
             {ended ? (

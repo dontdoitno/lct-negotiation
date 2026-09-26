@@ -108,12 +108,17 @@ export async function* streamActorReply(ctx: ActorTurnContext): AsyncGenerator<s
         full += chunk;
         yield chunk;
       }
-    } catch {
+    } catch (err) {
+      console.error(`[actor] LLM stream call failed (attempt ${attempt + 1}/2), falling back:`, err);
       full = "";
+    }
+    if (full.trim().length > 0 && !isValidReply(full)) {
+      console.error(`[actor] LLM reply rejected by post-filter (attempt ${attempt + 1}/2):`, full);
     }
     if (isValidReply(full) && full.trim().length > 0) return full;
   }
 
+  console.error("[actor] both LLM attempts failed or returned nothing usable — using a canned persona line.");
   const fallback = mockActorLine(ctx);
   yield fallback;
   return fallback;

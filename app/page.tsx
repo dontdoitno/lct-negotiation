@@ -1,6 +1,7 @@
 import { getUserId } from "@/lib/user";
 import { getLevelMap } from "@/lib/progress";
 import { CaseCard } from "@/components/CaseCard";
+import { LearnBanner } from "@/components/LearnBanner";
 
 export default async function LevelMapPage() {
   const userId = await getUserId();
@@ -17,6 +18,8 @@ export default async function LevelMapPage() {
           воспроизводим, и продавить персонажа нельзя.
         </p>
       </header>
+
+      <LearnBanner />
 
       <div className="flex items-center gap-3">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel-raised">
