@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { S1_MOTIVATION_OPTIONS } from "@/lib/content/reflectionOptions";
+import { getMotivationOptions } from "@/lib/content/reflectionOptions";
 
 interface TurnSummary {
   index: number;
@@ -14,6 +14,7 @@ export default function ReflectPage() {
   const router = useRouter();
   const [turns, setTurns] = useState<TurnSummary[]>([]);
   const [displayName, setDisplayName] = useState("");
+  const [motivationOptions, setMotivationOptions] = useState<readonly string[]>([]);
   const [motivation, setMotivation] = useState<string | null>(null);
   const [breakTurn, setBreakTurn] = useState<number | null>(null);
   const [readiness, setReadiness] = useState(3);
@@ -25,6 +26,7 @@ export default function ReflectPage() {
       .then((data) => {
         setTurns(data.turns.map((t: TurnSummary) => ({ index: t.index, playerText: t.playerText })));
         setDisplayName(data.persona.displayName);
+        setMotivationOptions(getMotivationOptions(data.scenario.id));
       });
   }, [sessionId]);
 
@@ -53,7 +55,7 @@ export default function ReflectPage() {
         <section className="flex flex-col gap-2">
           <p className="text-sm text-ink">1. Чего {displayName || "собеседник"} хотел(а) на самом деле?</p>
           <div className="flex flex-col gap-1.5">
-            {S1_MOTIVATION_OPTIONS.map((opt) => (
+            {motivationOptions.map((opt) => (
               <button
                 key={opt}
                 onClick={() => setMotivation(opt)}

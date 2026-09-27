@@ -72,3 +72,44 @@ model CustomScenario {
   payload   Json
   createdAt DateTime @default(now())
 }
+
+// --- Experimental LLM-judge module (lib/judge/*) ---------------------------
+// Separate tables on purpose: this is a parallel scoring mode next to the
+// deterministic engine above (Session/Turn), not a replacement for it.
+
+model JudgeSession {
+  id          String    @id @default(cuid())
+  userId      String
+  scenarioId  String
+  personaType String // rational | anxious | aggressive
+  metrics     Json // current six named metrics (adaptation/trust/resistance/interests/solutions/commitment)
+  turnCount   Int       @default(0)
+  status      String // active | success | failed | timeout
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  turns       JudgeTurn[]
+
+  @@index([userId])
+}
+
+model JudgeTurn {
+  id                 String       @id @default(cuid())
+  sessionId          String
+  session            JudgeSession @relation(fields: [sessionId], references: [id])
+  index              Int
+  playerText         String
+  prefiltered        Boolean      @default(false)
+  prefilterReason    String?
+  rawDeltas          Json // judge's -2..2 per metric (or the prefilter's raw deltas)
+  appliedDeltas      Json // after step-scaling and per-turn clamp
+  metricsAfter       Json
+  techniquesUsed     Json
+  techniquesViolated Json
+  rationale          String
+  degraded           Boolean      @default(false)
+  npcReply           String
+  latencyMs          Int
+  createdAt          DateTime     @default(now())
+
+  @@unique([sessionId, index])
+}

@@ -190,6 +190,110 @@ class YandexCloudProvider implements LLMProvider {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Yandex Cloud's OpenAI-compatible endpoint — required for third-party
+// marketplace models (DeepSeek, Qwen, GPT-OSS) that aren't exposed on the
+// native Foundation Models /completion route above. Uses the Responses API
+// shape (instructions + input), not chat.completions.
+//
+// Important: some of these (DeepSeek included) are reasoning models — they
+// spend output tokens on hidden "reasoning" before the visible answer, so a
+// small max_output_tokens can burn the whole budget on reasoning and return
+// no text at all (status: "incomplete", text: null). We floor the token
+// budget well above what the analyzer/actor normally request.
+// ---------------------------------------------------------------------------
+
+const YANDEX_RESPONSES_URL = "https://ai.api.cloud.yandex.net/v1/responses";
+const YANDEX_REASONING_TOKEN_FLOOR = 1200;
+
+interface YandexResponsesContentBlock {
+  type?: string;
+  text?: string;
+}
+
+interface YandexResponsesOutputItem {
+  type?: string;
+  content?: YandexResponsesContentBlock[] | null;
+}
+
+interface YandexResponsesResult {
+  output_text?: string;
+  output?: YandexResponsesOutputItem[];
+  status?: string;
+  incomplete_details?: { reason?: string };
+}
+
+function extractResponsesText(data: YandexResponsesResult): string {
+  if (data.output_text) return data.output_text;
+  const blocks = (data.output ?? []).flatMap((item) => item.content ?? []);
+  return blocks
+    .map((b) => b.text ?? "")
+    .filter(Boolean)
+    .join("");
+}
+
+class YandexResponsesProvider implements LLMProvider {
+  constructor(
+    private apiKey: string,
+    private folderId: string,
+  ) {}
+
+  private headers() {
+    return {
+      Authorization: `Bearer ${this.apiKey}`,
+      "Content-Type": "application/json",
+    };
+  }
+
+  private modelUri() {
+    return `gpt://${this.folderId}/${YANDEX_MODEL}/${YANDEX_MODEL_VERSION}`;
+  }
+
+  private body(messages: Message[], opts: CompleteOptions) {
+    const instructions = messages
+      .filter((m) => m.role === "system")
+      .map((m) => m.content)
+      .join("\n\n");
+    const input = messages
+      .filter((m) => m.role !== "system")
+      .map((m) => m.content)
+      .join("\n\n");
+
+    return {
+      model: this.modelUri(),
+      temperature: opts.temperature ?? 0.6,
+      instructions,
+      input,
+      max_output_tokens: Math.max(opts.maxTokens ?? 300, YANDEX_REASONING_TOKEN_FLOOR),
+    };
+  }
+
+  async complete(messages: Message[], opts: CompleteOptions = {}): Promise<string> {
+    const res = await fetch(YANDEX_RESPONSES_URL, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(this.body(messages, opts)),
+    });
+    if (!res.ok) throw new Error(`Yandex Cloud (responses) error: ${res.status} ${await res.text()}`);
+    const data: YandexResponsesResult = await res.json();
+    const text = extractResponsesText(data);
+    if (!text && data.status === "incomplete") {
+      throw new Error(
+        `Yandex Cloud (responses): incomplete response (reason: ${data.incomplete_details?.reason ?? "unknown"}) — model likely ran out of output tokens during reasoning before producing text.`,
+      );
+    }
+    return text;
+  }
+
+  // Not verified whether this endpoint supports SSE streaming for
+  // third-party models — call complete() and yield once rather than guess
+  // at an unconfirmed event schema.
+  async *stream(messages: Message[], opts: CompleteOptions = {}): AsyncIterable<string> {
+    const text = await this.complete(messages, opts);
+    yield text;
+  }
+}
+
 /**
  * Deterministic stand-in for offline demos and local dev without API keys.
  * Callers (analyzer/actor) supply their own mock logic on top of this —
@@ -240,7 +344,10 @@ export function getLLMProvider(): LLMProvider {
   if (cached) return cached;
   switch (resolveProviderName()) {
     case "yandex":
-      cached = new YandexCloudProvider(process.env.YANDEX_API_KEY!, process.env.YANDEX_FOLDER_ID!);
+      cached =
+        process.env.YANDEX_API_MODE === "responses"
+          ? new YandexResponsesProvider(process.env.YANDEX_API_KEY!, process.env.YANDEX_FOLDER_ID!)
+          : new YandexCloudProvider(process.env.YANDEX_API_KEY!, process.env.YANDEX_FOLDER_ID!);
       break;
     case "openrouter":
       cached = new OpenRouterProvider(process.env.OPENROUTER_API_KEY!);

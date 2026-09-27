@@ -86,6 +86,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       let npcText = "";
       const actorGen = streamActorReply({
         persona,
+        scenario,
         state: nextState,
         resistanceDelta: deltas.R ?? 0,
         revealed,

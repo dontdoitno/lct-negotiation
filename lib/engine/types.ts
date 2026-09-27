@@ -116,6 +116,8 @@ export interface Scenario {
   turnLimit: number;
   personas: string[];
   config: { domain: string; difficulty: number; tone: string };
+  managerResources?: string[]; // what the player can offer — keeps the persona from asking for/rejecting on things off the table
+  managerConstraints?: string[]; // what the player explicitly cannot do
 }
 
 export type Ending = "success" | "failed" | "timeout" | null;

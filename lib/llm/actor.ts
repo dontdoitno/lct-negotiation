@@ -1,9 +1,10 @@
 import { bucketOf } from "../engine/state";
-import { Ending, Persona, SessionState } from "../engine/types";
+import { Ending, Persona, Scenario, SessionState } from "../engine/types";
 import { getLLMProvider, isMockMode, Message } from "./provider";
 
 export interface ActorTurnContext {
   persona: Persona;
+  scenario: Scenario;
   state: SessionState;
   resistanceDelta: number; // positive = resistance grew this turn
   revealed: { layer: number; text: string } | null;
@@ -36,7 +37,7 @@ function lastNpcLine(history: ActorTurnContext["history"]): string | undefined {
 }
 
 export function buildActorSystemPrompt(ctx: ActorTurnContext): Message[] {
-  const { persona, state } = ctx;
+  const { persona, scenario, state } = ctx;
   const rBucket = bucketOf("R", state.R);
   const tBucket = bucketOf("T", state.T);
   const cBucket = bucketOf("C", state.C);
@@ -47,14 +48,19 @@ export function buildActorSystemPrompt(ctx: ActorTurnContext): Message[] {
         .join("; ")
     : "ничего";
 
+  const resourcesBlock =
+    scenario.managerResources || scenario.managerConstraints
+      ? `\nЧТО МОЖЕТ РУКОВОДИТЕЛЬ (не отвергай эти варианты как невозможные):\n${(scenario.managerResources ?? []).map((r) => `- ${r}`).join("\n")}\n\nЧЕГО РУКОВОДИТЕЛЬ НЕ МОЖЕТ (не проси и не жди этого от него):\n${(scenario.managerConstraints ?? []).map((c) => `- ${c}`).join("\n")}\n`
+      : "";
+
   const system = `${persona.temperament}
 
 БЭКСТОРИ: ${persona.backstory}
 ТВОЯ ЦЕЛЬ: ${persona.goal}
 ПРАВИЛА ПОВЕДЕНИЯ:
 ${persona.behaviorRules.map((r) => `- ${r}`).join("\n")}
-
-Только реплика персонажа, 1–3 предложения, живой разговорный русский. Без пояснений, без метрик, без выхода из роли.`;
+${resourcesBlock}
+Только реплика персонажа, 3–5 предложений, живой разговорный русский от первого лица. Естественная человеческая манера — избегай шаблонного «ИИ-тона», канцеляризмов и клише, чередуй короткие и длинные предложения. Не повторяй то, что уже говорил(а) — ссылайся на слова руководителя или добавляй новое. Реагируй на конкретные слова руководителя, а не общими фразами. Каждая реплика содержит одну зацепку: эмоцию, факт, требование или вопрос. Без пояснений, без метрик, без выхода из роли.`;
 
   const state_block = `ТВОЁ ТЕКУЩЕЕ СОСТОЯНИЕ:
 Сопротивление: ${rBucket}
@@ -86,7 +92,7 @@ ${persona.linesByResistance[rBucket as "high" | "medium" | "low"].join(" / ")}`;
 const BANNED_PHRASES = ["как языковая модель", "как ии", "как искусственный интеллект"];
 
 function isValidReply(text: string): boolean {
-  if (text.length > 400) return false;
+  if (text.length > 700) return false;
   const lower = text.toLowerCase();
   return !BANNED_PHRASES.some((p) => lower.includes(p));
 }
