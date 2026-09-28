@@ -17,31 +17,31 @@ export const razborTheme = {
   name: 'razbor',
   __built: true,
   tokens: {
-    "--color-accent": "light-dark(#2255CD, #B4C4FF)",
+    "--color-accent": "#3454D1",
     "--color-accent-muted": "light-dark(color-mix(in srgb, var(--color-accent) 20%, transparent), color-mix(in srgb, var(--color-accent) 25%, transparent))",
-    "--color-on-accent": "light-dark(#FFFFFF, #003077)",
-    "--color-neutral": "light-dark(#1B1B1F1A, #E1E2E833)",
+    "--color-on-accent": "#FFFFFF",
+    "--color-neutral": "light-dark(#1C1B1F1A, #E2E2E733)",
     "--color-background-surface": "light-dark(#FFFFFF, #1F1F22)",
     "--color-background-body": "light-dark(#EFEFEC, #111112)",
-    "--color-overlay": "light-dark(#1B1B1F66, #1B1B1F99)",
-    "--color-overlay-hover": "light-dark(#1B1B1F0D, #FFFFFF0D)",
-    "--color-overlay-pressed": "light-dark(#1B1B1F1A, #FFFFFF1A)",
-    "--color-background-muted": "light-dark(#1B1B1F0D, #1B1B1F80)",
-    "--color-text-primary": "light-dark(#000000, #FBFCFF)",
-    "--color-text-secondary": "light-dark(#303038, #C4C6D1)",
-    "--color-text-disabled": "light-dark(#90909A, #5C5E68)",
+    "--color-overlay": "light-dark(#1C1B1F66, #1C1B1F99)",
+    "--color-overlay-hover": "light-dark(#1C1B1F0D, #FFFFFF0D)",
+    "--color-overlay-pressed": "light-dark(#1C1B1F1A, #FFFFFF1A)",
+    "--color-background-muted": "light-dark(#1C1B1F0D, #1C1B1F80)",
+    "--color-text-primary": "light-dark(#000000, #FCFCFF)",
+    "--color-text-secondary": "light-dark(#302F38, #C7C5D0)",
+    "--color-text-disabled": "light-dark(#918F9A, #5E5D67)",
     "--color-text-accent": "var(--color-accent)",
     "--color-icon-accent": "var(--color-accent)",
-    "--color-icon-primary": "light-dark(#000000, #FBFCFF)",
-    "--color-icon-secondary": "light-dark(#303038, #C4C6D1)",
-    "--color-icon-disabled": "light-dark(#90909A, #5C5E68)",
-    "--color-background-card": "light-dark(#FCFCFF, #1B1B1F)",
-    "--color-background-popover": "light-dark(#FCFCFF, #2F3035)",
-    "--color-background-inverted": "light-dark(#1B1B1F, #FBFCFF)",
-    "--color-border": "light-dark(#1B1B1F33, #EFF0F633)",
-    "--color-border-emphasized": "light-dark(#777680, #757781)",
-    "--color-skeleton": "light-dark(#ABAAB5, #444650)",
-    "--color-track": "light-dark(#ABAAB5, #444650)",
+    "--color-icon-primary": "light-dark(#000000, #FCFCFF)",
+    "--color-icon-secondary": "light-dark(#302F38, #C7C5D0)",
+    "--color-icon-disabled": "light-dark(#918F9A, #5E5D67)",
+    "--color-background-card": "light-dark(#FCFCFF, #1C1B1F)",
+    "--color-background-popover": "light-dark(#FCFCFF, #303034)",
+    "--color-background-inverted": "light-dark(#1C1B1F, #FCFCFF)",
+    "--color-border": "light-dark(#1C1B1F33, #F1F0F633)",
+    "--color-border-emphasized": "light-dark(#777680, #777680)",
+    "--color-skeleton": "light-dark(#ABAAB5, #47464F)",
+    "--color-track": "light-dark(#ABAAB5, #47464F)",
     "--color-shadow": "light-dark(#0000001A, #0000004D)",
     "--color-tint-hover": "light-dark(black, white)",
     "--font-size-4xs": "0.5625rem",
@@ -115,9 +115,12 @@ export const razborTheme = {
     "--duration-slow": "600ms",
     "--duration-slow-max": "800ms",
     "--font-family-body": "Manrope, -apple-system, system-ui, sans-serif",
-    "--font-family-heading": "Unbounded, -apple-system, system-ui, sans-serif",
+    "--font-family-heading": "\"Wix Madefor Display\", -apple-system, system-ui, sans-serif",
     "--font-family-code": "\"JetBrains Mono\", \"SF Mono\", ui-monospace, monospace",
-    "--focus-outline-color": "var(--color-accent)"
+    "--focus-outline-color": "var(--color-accent)",
+    "--size-element-sm": "32px",
+    "--size-element-md": "40px",
+    "--size-element-lg": "48px"
   },
   localTokens: {
     "--metric-resistance": "light-dark(#BE3C28, #E8654F)",
@@ -227,6 +230,32 @@ export const razborTheme = {
         "fontSize": "var(--text-display-3-size)",
         "lineHeight": "var(--text-display-3-leading)"
       }
+    },
+    "button": {
+      "size:sm": {
+        "--spacing-3": "16px"
+      },
+      "size:md": {
+        "--spacing-3": "24px"
+      },
+      "size:lg": {
+        "--spacing-3": "32px"
+      },
+      "variant:ghost": {
+        "--spacing-3": "8px"
+      }
+    },
+    "selectable-card": {
+      "base": {
+        "cursor": "pointer",
+        ":hover": {
+          "backgroundColor": "var(--color-background-muted)"
+        }
+      },
+      "selected": {
+        "backgroundColor": "var(--color-accent)",
+        "color": "var(--color-on-accent)"
+      }
     }
   },
   __onDark: {
@@ -266,7 +295,7 @@ export const razborTheme = {
         "fallbacks": "-apple-system, system-ui, sans-serif"
       },
       "heading": {
-        "family": "Unbounded",
+        "family": "Wix Madefor Display",
         "fallbacks": "-apple-system, system-ui, sans-serif",
         "weight": "semibold",
         "weights": {
@@ -280,10 +309,7 @@ export const razborTheme = {
       }
     },
     "color": {
-      "accent": [
-        "#2456CE",
-        "#6E9BFF"
-      ],
+      "accent": "#3454D1",
       "neutralStyle": "neutral",
       "contrast": "high"
     },

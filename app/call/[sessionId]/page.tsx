@@ -127,8 +127,14 @@ export default function CallPage() {
   const stageStatus: StageStatus = s.portraitStatus === "speaking" ? "speaking" : s.portraitStatus === "thinking" ? "thinking" : "listening";
   const reply = s.portraitStatus === "thinking" ? null : npcItem?.text ?? null;
 
+  // A conversation that broke off (AI left, turns ran out) goes through the
+  // interstitial first. Reaching agreement, or the player ending the call
+  // deliberately, goes straight to the debrief.
+  const endedHref =
+    ended && s.status !== "success" ? `/session/${sessionId}/ended` : `/session/${sessionId}/debrief`;
+
   function endCall() {
-    if (ended || window.confirm("Завершить разговор и перейти к разбору?")) router.push(`/reflect/${sessionId}`);
+    if (ended || window.confirm("Завершить разговор и перейти к разбору?")) router.push(endedHref);
   }
 
   return (
@@ -211,7 +217,7 @@ export default function CallPage() {
                 <span className="text-[15px] text-secondary">
                   Разговор завершён: <span className="text-primary">{s.status === "success" ? "успех" : s.status === "failed" ? "срыв" : "лимит ходов"}</span>
                 </span>
-                <button onClick={() => router.push(`/reflect/${sessionId}`)} className="rounded-md bg-accent-bg px-4 py-2 text-[15px] text-white">
+                <button onClick={() => router.push(endedHref)} className="rounded-md bg-accent-bg px-4 py-2 text-[15px] text-white">
                   К разбору →
                 </button>
               </div>

@@ -1,0 +1,244 @@
+import { QuizOption, QuizOutcome, QuizRole, QuizTopic } from "./types";
+
+/**
+ * Every piece of interface copy for the flow screens, in one place.
+ *
+ * Wording is taken verbatim from docs/full-flow-specs.md — do not paraphrase
+ * it here. If a string needs to change, change it in the spec first.
+ */
+
+export const LANDING = {
+  title: "Тренажёр сложных разговоров с сотрудниками",
+  subtitle:
+    "Отрабатывайте перегрузку, конфликты и падение результатов на AI-сотруднике. Без риска для реальной команды",
+  values: [
+    {
+      title: "Что тренируем",
+      text: "Перегрузка сотрудника. Падение результатов. Реальные рабочие ситуации, а не абстрактные диалоги",
+    },
+    {
+      title: "С кем",
+      text: "Три типа характера: агрессивный, тревожный, рациональный. У каждого своя логика и свои скрытые причины",
+    },
+    {
+      title: "Что получаете",
+      text: "Разбор разговора по шести метрикам: где вы сняли сопротивление, а где потеряли человека",
+    },
+  ],
+  primaryCta: "Попробовать разговор",
+  secondaryCta: "Войти",
+  productName: "Разбор полётов",
+};
+
+export const QUIZ = {
+  stepTitle: "Три вопроса, чтобы подобрать первый разговор",
+  progress: (n: number, total: number) => `Вопрос ${n} из ${total}`,
+  back: "Назад",
+  questions: {
+    role: {
+      title: "Какая у вас роль?",
+      options: [
+        { value: "teamlead", label: "Тимлид" },
+        { value: "group_head", label: "Руководитель группы" },
+        { value: "dept_head", label: "Начальник отдела" },
+      ] as QuizOption<QuizRole>[],
+    },
+    topic: {
+      title: "Что сейчас актуально?",
+      options: [
+        { value: "overload", label: "Сотрудник перегружен и просит снизить нагрузку" },
+        { value: "performance_drop", label: "Сотрудник просел по результатам" },
+        { value: "just_practice", label: "Просто хочу потренироваться" },
+      ] as QuizOption<QuizTopic>[],
+    },
+    outcome: {
+      title: "Чем обычно заканчиваются такие разговоры?",
+      options: [
+        { value: "not_followed", label: "Договорились, но потом не выполняется" },
+        { value: "conflict", label: "Скатывается в конфликт" },
+        { value: "went_silent", label: "Он замолчал, и я не понял, что не так" },
+      ] as QuizOption<QuizOutcome>[],
+    },
+  },
+};
+
+export const SIGNUP = {
+  title: "Сохраним ваш прогресс",
+  subtitle: "Результаты разборов и карта навыков останутся за вами",
+  email: "Email",
+  password: "Пароль",
+  submit: "Создать аккаунт",
+  submitting: "Создаём аккаунт…",
+  guest: "Продолжить как гость",
+  haveAccount: "Уже есть аккаунт?",
+  login: "Войти",
+  errors: {
+    emailRequired: "Введите email",
+    emailInvalid: "Похоже, в адресе опечатка",
+    passwordRequired: "Введите пароль",
+    passwordShort: "Минимум 8 символов",
+    server: "Не получилось создать аккаунт. Попробуйте ещё раз",
+  },
+};
+
+export const LOGIN = {
+  title: "С возвращением",
+  submit: "Войти",
+  submitting: "Входим…",
+  noAccount: "Нет аккаунта?",
+  signup: "Создать",
+  errors: { server: "Не получилось войти. Проверьте email и пароль" },
+};
+
+export const RULES = {
+  cards: [
+    {
+      title: "Как это работает",
+      text: "Вы — руководитель. Напротив — AI-сотрудник со своим характером, своей целью и скрытыми причинами, о которых он не скажет сразу. Говорите текстом или голосом, как в обычном звонке.",
+    },
+    {
+      title: "Что вы качаете",
+      metrics: [
+        "A — адаптивность: подбираете подход под характер собеседника",
+        "T — доверие: он говорит с вами честно",
+        "R — сопротивление: он принимает ваши аргументы",
+        "I — интересы: вы докопались до настоящей причины",
+        "S — решения: вы нашли варианты, а не один ультиматум",
+        "C — договорённости: есть кто, что и к какому сроку",
+      ],
+      footnote:
+        "Это гарвардский метод: отделять человека от проблемы, идти к интересам за позициями, искать варианты и опираться на критерии.",
+    },
+    {
+      title: "Как выиграть",
+      text: "Победа — не «уговорить». Победа — снять сопротивление, докопаться до настоящей причины, найти варианты и зафиксировать кто, что и к какому сроку. У сотрудника несколько слоёв скрытых интересов. Их нужно раскрыть.",
+    },
+  ],
+  next: "Далее",
+  finish: "Понятно, начать",
+  skip: "Пропустить",
+};
+
+export const CASES = {
+  callLabel: (n: number) => `Созвон #${n}`,
+  firstTitle: "Ваш первый разговор",
+  progressTitle: "Ваши разговоры",
+  recommendedBadge: "Рекомендуем начать отсюда",
+  recommendedNote: "Судя по вашим ответам, это ваш случай",
+  lockedNote: "Откроется после первого разговора",
+  attempts: (n: number) => (n === 1 ? "1 попытка" : `${n} попыток`),
+  noAttempts: "Не пройдено",
+  nextStepTitle: "Что взять дальше",
+};
+
+/**
+ * Working out who you were talking to is one of the exercises, so the case
+ * never names the type — the debrief asks for a guess and only then reveals it.
+ */
+export const TYPE_GUESS = {
+  sectionTitle: "Тип личности",
+  question: "Кто это был?",
+  hint: "Типов всего три. Выберите тот, который, по вашему мнению, вам достался.",
+  submit: "Проверить",
+  options: [
+    { value: "aggressive", label: "Агрессивный" },
+    { value: "anxious", label: "Тревожный" },
+    { value: "rational", label: "Рациональный" },
+  ] as QuizOption<"aggressive" | "anxious" | "rational">[],
+  correct: "Верно, тип вы определили",
+  wrong: "Тип вы не определили",
+  yourAnswer: "Ваш ответ",
+  trueAnswer: "На самом деле",
+  markersTitle: "По каким признакам это было видно",
+  markers: {
+    aggressive:
+      "Повышает тон, перебивает, спорит с самой постановкой вопроса. Давит на вашу позицию, а не разбирает задачу.",
+    anxious:
+      "Говорит тихо, извиняется, не просит прямо — намекает и ждёт, что вы догадаетесь сами. Замолкает при любом нажиме.",
+    rational:
+      "Опирается на факты и цифры, торгуется, просит обоснование и сам предлагает компромиссные варианты.",
+  } as Record<"aggressive" | "anxious" | "rational", string>,
+  whyItMatters:
+    "От типа зависит, что снимает сопротивление: тревожному нужно признание, агрессивному — твёрдая рамка, рациональному — критерии.",
+};
+
+export const COMMITMENTS = {
+  title: "Зафиксируйте договорённости",
+  subtitle: "Своими словами, как записали бы в протокол встречи",
+  fields: {
+    what: "Что делаем",
+    who: "Кто отвечает",
+    deadline: "К какому сроку",
+    check: "Как проверяем",
+  },
+  addItem: "Добавить пункт",
+  removeItem: "Удалить пункт",
+  submit: "Отправить сотруднику",
+  submitting: "Отправляем…",
+  finish: "Завершить разговор",
+  closeConfirm: "Закрыть окно? Введённые договорённости не сохранятся.",
+  maxItemsNote: "Максимум пять пунктов",
+};
+
+export const ENDED = {
+  byPersona: {
+    aggressive: "Он сорвался и закончил разговор",
+    anxious: "Он согласился формально и тихо ушёл",
+    rational: "Он сказал, что подумает, и вышел",
+  },
+  turnLimit: "Время разговора вышло",
+  subtitle: "Разбор всё равно готов — самое важное в нём",
+  cta: "Посмотреть разбор",
+};
+
+export const DEBRIEF = {
+  outcomeTitle: "Итог",
+  outcomeLabels: {
+    goalAchievement: "Цель достигнута",
+    employeeSatisfaction: "Удовлетворённость сотрудника",
+    commitmentReadiness: "Готовность выполнять договорённости",
+    conflictRisk: "Риск конфликта или ухода",
+  },
+  metricsTitle: "Метрики",
+  metricsLegendStart: "Было",
+  metricsLegendEnd: "Стало",
+  timelineTitle: "Таймлайн разговора",
+  timelineShowAll: "Показать все реплики",
+  layersTitle: "Скрытые интересы",
+  layerNotReached: "Вы до этого не дошли",
+  layerReachedAt: (turn: number) => `Раскрыт на реплике ${turn}`,
+  workedTitle: "Что сработало",
+  killedTitle: "Что убило разговор",
+  rewriteTitle: "Переписанная реплика",
+  rewriteSaid: "Вы сказали",
+  rewriteHeard: "Он услышал",
+  rewriteCouldBe: "Могло быть",
+  actionsAgain: "Пройти этот кейс ещё раз",
+  actionsOtherType: "Тот же кейс, другой характер",
+  actionsNext: "Следующий кейс",
+  guestTitle: "Сохранить результат и прогресс",
+};
+
+/** Action codes → the human wording the debrief timeline shows on badges. */
+export const ACTION_BADGE: Record<string, string> = {
+  open_question: "открытый вопрос",
+  ack_emotion: "признание эмоции",
+  firm_respect: "твёрдость и уважение",
+  objective_criteria: "опора на критерии",
+  offer_options: "предложение вариантов",
+  commit_fix: "фиксация",
+  specific_recognition: "признание работы",
+  apology: "признание ошибки",
+  pressure: "давление",
+  blame: "обвинение",
+  softness_no_substance: "мягкость без твёрдости",
+  ignore_emotion: "игнорирование эмоции",
+  mirror_aggression: "зеркалирование агрессии",
+  direct_criticism: "прямая критика",
+  postpone_no_deadline: "«я подумаю» без срока",
+  postpone_with_deadline: "«я подумаю» со сроком",
+  postpone_repeat: "повторное «я подумаю»",
+  small_talk: "общие слова",
+  clarify_fact: "уточнение факта",
+  off_topic: "не по теме",
+};

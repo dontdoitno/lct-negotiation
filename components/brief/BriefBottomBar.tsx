@@ -39,7 +39,7 @@ export function BriefBottomBar({ levelId }: { levelId: string }) {
             aria-labelledby="brief-metrics-heading"
             className="max-h-[60vh] overflow-y-auto border-b-[1.5px] border-border"
           >
-            <ul className="mx-auto grid max-w-[1400px] gap-2.5 px-8 py-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mx-auto grid max-w-wide gap-2.5 px-8 py-4 sm:grid-cols-2 lg:grid-cols-3">
               {BRIEF_METRICS.map((m) => (
                 <li key={m.code} className="rounded-lg border-[1.5px] border-border p-3.5">
                   <h3 className="text-[15px] font-bold text-primary">{m.label}</h3>
@@ -50,7 +50,7 @@ export function BriefBottomBar({ levelId }: { levelId: string }) {
           </section>
         )}
 
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-2 px-8 py-3">
+        <div className="mx-auto flex max-w-wide flex-wrap items-center gap-x-5 gap-y-2 px-8 py-3">
           <h2 id="brief-metrics-heading" className="label-case shrink-0 text-[10px] text-secondary">
             Что оценивается
           </h2>

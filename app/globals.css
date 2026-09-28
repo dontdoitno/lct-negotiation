@@ -12,40 +12,41 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 /* ---------------------------------------------------------------------------
-   Legacy dark palette.
+   Legacy alias layer.
 
-   Still drives every screen except the call: level map, brief, reflection,
-   debrief, learn. The call screen runs on the Astryx theme (razbor) instead,
-   so the two coexist deliberately rather than by accident. Migrating the
-   remaining screens onto theme tokens is a separate pass.
+   The product is light-only. These names (--void, --ink, --panel…) are what
+   the older screens still reference; rather than leave a second, dark palette
+   alive next to the theme — which is exactly how new screens ended up drawing
+   black text on a black page — every alias now points at a theme token.
 
-   `accent` here was renamed to `gold` because the Astryx bridge owns
-   `--color-accent`: leaving both would have silently repainted every gold
-   button on the old screens with the theme's blue.
+   Nothing new should use these. They exist so the remaining screens stay
+   readable while they are migrated to Astryx components, and the block is
+   deleted once nothing references it.
 --------------------------------------------------------------------------- */
 :root {
-  --void: #0e1013;
-  --panel: #16191f;
-  --panel-raised: #1d2129;
-  --panel-sunken: #0a0c0f;
-  --line: #262b33;
-  --line-strong: #343a45;
+  --void: var(--color-background-body);
+  --panel: var(--color-background-surface);
+  --panel-raised: var(--color-background-muted);
+  --panel-sunken: var(--color-background-body);
+  --line: var(--color-border);
+  --line-strong: var(--color-border-emphasized);
 
-  --ink: #edeef0;
-  --ink-muted: #8b909c;
-  --ink-faint: #565b66;
+  --ink: var(--color-text-primary);
+  --ink-muted: var(--color-text-secondary);
+  --ink-faint: var(--color-text-disabled);
 
-  --resistance: #e8654f;
-  --resistance-soft: #e8654f26;
-  --trust: #49c19a;
-  --trust-soft: #49c19a26;
-  --adapt: #8b93f5;
-  --adapt-soft: #8b93f526;
-  --insight: #e0ab52;
-  --insight-soft: #e0ab5226;
+  --resistance: var(--metric-resistance);
+  --resistance-soft: color-mix(in srgb, var(--metric-resistance) 12%, transparent);
+  --trust: var(--metric-trust);
+  --trust-soft: color-mix(in srgb, var(--metric-trust) 12%, transparent);
+  --adapt: var(--metric-adapt);
+  --adapt-soft: color-mix(in srgb, var(--metric-adapt) 12%, transparent);
+  --insight: var(--metric-insight);
+  --insight-soft: color-mix(in srgb, var(--metric-insight) 12%, transparent);
 
-  --accent: #e0ab52;
-  --accent-ink: #211605;
+  /* The old gold accent is gone; everything shares the theme's one accent. */
+  --accent: var(--color-accent);
+  --accent-ink: var(--color-on-accent);
 }
 
 @theme inline {
@@ -81,28 +82,41 @@
   --color-metric-adapt: var(--metric-adapt);
   --color-metric-insight: var(--metric-insight);
 
-  --font-display: var(--font-display), "Unbounded", ui-sans-serif, system-ui;
+  --font-display: var(--font-display), "Wix Madefor Display", ui-sans-serif, system-ui;
   --font-body: var(--font-body), "Manrope", ui-sans-serif, system-ui;
   --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+
+  /* Three container widths, one per kind of screen. Before this they were
+     seven ad-hoc numbers scattered across pages, which made the new screens
+     sit at a different width than the finished briefing.
+       narrow  — forms: keeps inputs from stretching across the viewport
+       reading — one-thing-at-a-time screens and prose: comfortable measure
+       wide    — boards and the briefing: the grid needs the room
+     Generates max-w-narrow / max-w-reading / max-w-wide. */
+  --container-narrow: 440px;
+  --container-reading: 640px;
+  --container-wide: 1400px;
 }
 
 @layer base {
   body {
-    background: var(--void);
-    color: var(--ink);
-    font-family: var(--font-body);
+    background: var(--color-background-body);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-body);
   }
 
+  /* Headings are styled by Astryx's Heading component; this only covers raw
+     tags left in screens that have not been migrated yet. */
   h1,
   h2,
   h3 {
-    font-family: var(--font-display);
+    font-family: var(--font-family-heading);
     letter-spacing: -0.01em;
   }
 
   ::selection {
-    background: var(--accent);
-    color: var(--accent-ink);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
   }
 }
 

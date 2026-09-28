@@ -47,7 +47,7 @@ export default async function BriefPage({ params }: { params: Promise<{ levelId:
   return (
     <div className="min-h-screen bg-surface text-primary">
       {/* pb clears the fixed one-row bottom bar (~64px) with margin. */}
-      <main className="mx-auto max-w-[1400px] px-8 pb-24 pt-5">
+      <main className="mx-auto max-w-wide px-8 pb-24 pt-5">
         <header className="flex flex-wrap items-center justify-between gap-3 pb-4">
           <Link
             href="/"

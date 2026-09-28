@@ -42,15 +42,17 @@ export function LiveMetrics({ state, deltas, deltaSeq, turn }: { state: SessionS
             key={m}
             className={`flex flex-col gap-1.5 rounded-md border-2 px-2 py-2 transition-colors duration-300 ${lit ? `${lineStyle} border-accent` : "border-transparent border-b-border"}`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-base text-primary">
+            <div className="flex items-center justify-between gap-2">
+              {/* min-w-0 lets a long label wrap or shrink instead of squeezing
+                  the readout; the readout itself never wraps. */}
+              <span className="min-w-0 text-base text-primary">
                 {METRIC_META[m].label}
-                {isLowerBetter(m) && <span className="ml-1 text-[11px] text-disabled">↓ лучше</span>}
+                {isLowerBetter(m) && <span className="ml-1 whitespace-nowrap text-[11px] text-disabled">↓ лучше</span>}
               </span>
-              <span className="flex items-center gap-2.5">
+              <span className="flex shrink-0 items-center gap-2.5">
                 <span className="font-mono text-[17px] tabular-nums text-primary">{value}</span>
                 <span
-                  className={`rounded border-[1.5px] px-1.5 font-mono text-[12px] tabular-nums ${moved ? `${lineStyle} border-accent text-accent` : "border-border text-disabled"}`}
+                  className={`whitespace-nowrap rounded border-[1.5px] px-1.5 font-mono text-[12px] tabular-nums ${moved ? `${lineStyle} border-accent text-accent` : "border-border text-disabled"}`}
                 >
                   {moved ? formatDelta(d) : "– 0"}
                 </span>

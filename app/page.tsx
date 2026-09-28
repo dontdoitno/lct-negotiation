@@ -1,43 +1,63 @@
-import { getUserId } from "@/lib/user";
-import { getLevelMap } from "@/lib/progress";
-import { CaseCard } from "@/components/CaseCard";
-import { LearnBanner } from "@/components/LearnBanner";
+import Link from "next/link";
+import { Text, Heading } from "@astryxdesign/core/Text";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { LANDING } from "@/lib/flow/copy";
+import { CallPreview } from "@/components/landing/CallPreview";
 
-export default async function LevelMapPage() {
-  const userId = await getUserId();
-  const levels = await getLevelMap(userId);
-  const passed = levels.filter((l) => l.bestStars > 0).length;
-
+export default function LandingPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-12">
-      <header className="flex flex-col gap-3">
-        <span className="label-case text-xs text-ink-faint">Тренажёр управленческих переговоров</span>
-        <h1 className="font-display text-3xl font-bold text-ink md:text-4xl">Разбор полётов</h1>
-        <p className="max-w-xl text-sm text-ink-muted">
-          Один и тот же сотрудник, три типа характера. Состояние на экране считает движок, а не языковая модель — исход
-          воспроизводим, и продавить персонажа нельзя.
-        </p>
-      </header>
+    <div className="flex min-h-screen flex-col bg-surface">
+      <main className="mx-auto w-full max-w-wide flex-1 px-6 py-12">
+        <section className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(380px,660px)]">
+          <div>
+            <Heading level={1} type="display-1">
+              {LANDING.title}
+            </Heading>
+            <div className="mt-5 max-w-reading">
+              <Text as="p" display="block" type="large" color="secondary">
+                {LANDING.subtitle}
+              </Text>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              {/* Next's Link keeps client-side navigation; the Button inside
+                  carries the styling from the design system. */}
+              <Link href="/quiz">
+                <Button variant="primary" size="lg" label={LANDING.primaryCta} />
+              </Link>
+              <Link href="/login">
+                <Button variant="secondary" size="lg" label={LANDING.secondaryCta} />
+              </Link>
+            </div>
+          </div>
 
-      <LearnBanner />
+          {/* Preview is decoration: below 768px it drops out entirely rather
+              than squeezing the hero into an unreadable column. */}
+          <div className="hidden md:block">
+            <CallPreview />
+          </div>
+        </section>
 
-      <div className="flex items-center gap-3">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel-raised">
-          <div
-            className="h-full rounded-full bg-gold transition-[width] duration-500"
-            style={{ width: `${(passed / Math.max(1, levels.length)) * 100}%` }}
-          />
+        <section className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {LANDING.values.map((v) => (
+            <Card key={v.title}>
+              <Heading level={2}>{v.title}</Heading>
+              <div className="mt-2">
+                <Text as="p" display="block" color="secondary">
+                  {v.text}
+                </Text>
+              </div>
+            </Card>
+          ))}
+        </section>
+      </main>
+
+      <footer className="border-t-[1.5px] border-border">
+        <div className="mx-auto flex max-w-wide items-center justify-between px-6 py-5">
+          <Text type="supporting">{LANDING.productName}</Text>
+          <Text type="supporting">{new Date().getFullYear()}</Text>
         </div>
-        <span className="font-mono text-xs text-ink-muted">
-          Пройдено {passed} из {levels.length}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {levels.map((level, i) => (
-          <CaseCard key={level.levelId} level={level} index={i} />
-        ))}
-      </div>
-    </main>
+      </footer>
+    </div>
   );
 }
