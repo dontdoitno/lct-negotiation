@@ -60,7 +60,7 @@ export default function ReflectPage() {
                 key={opt}
                 onClick={() => setMotivation(opt)}
                 className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
-                  motivation === opt ? "border-accent bg-insight-soft text-ink" : "border-line text-ink-muted hover:border-line-strong"
+                  motivation === opt ? "border-gold bg-insight-soft text-ink" : "border-line text-ink-muted hover:border-line-strong"
                 }`}
               >
                 {opt}
@@ -78,7 +78,7 @@ export default function ReflectPage() {
                 onClick={() => setBreakTurn(t.index)}
                 title={t.playerText}
                 className={`h-8 w-8 rounded-md border font-mono text-xs transition-colors ${
-                  breakTurn === t.index ? "border-accent bg-insight-soft text-ink" : "border-line text-ink-muted hover:border-line-strong"
+                  breakTurn === t.index ? "border-gold bg-insight-soft text-ink" : "border-line text-ink-muted hover:border-line-strong"
                 }`}
               >
                 {t.index}
@@ -97,7 +97,7 @@ export default function ReflectPage() {
               max={5}
               value={readiness}
               onChange={(e) => setReadiness(Number(e.target.value))}
-              className="flex-1 accent-accent"
+              className="flex-1 accent-gold"
             />
             <span className="font-mono text-sm text-ink">{readiness}</span>
           </div>
@@ -106,7 +106,7 @@ export default function ReflectPage() {
         <button
           onClick={submit}
           disabled={!canSubmit || submitting}
-          className="label-case mt-2 rounded-md bg-accent px-6 py-3 text-xs font-semibold text-accent-ink disabled:opacity-40"
+          className="label-case mt-2 rounded-md bg-gold px-6 py-3 text-xs font-semibold text-gold-ink disabled:opacity-40"
         >
           {submitting ? "Считаем…" : "Посмотреть разбор"}
         </button>

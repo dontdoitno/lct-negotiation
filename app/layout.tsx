@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Unbounded, Manrope, JetBrains_Mono } from "next/font/google";
+import { Theme } from "@astryxdesign/core";
+import { razborTheme } from "../razbor";
 import "./globals.css";
 
 const display = Unbounded({
@@ -28,7 +30,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ru" className={`${display.variable} ${body.variable} ${mono.variable} h-full`}>
-      <body className="min-h-full bg-void text-ink antialiased">{children}</body>
+      {/* mode="light" rather than "system": the call screen is designed light,
+          and the remaining screens still run on the hardcoded dark legacy
+          palette — following the OS would only desynchronise the two. The
+          theme does define full dark pairs, so this is a one-word change once
+          those screens move over. */}
+      <body className="min-h-full bg-void text-ink antialiased">
+        <Theme theme={razborTheme} mode="light">
+          {children}
+        </Theme>
+      </body>
     </html>
   );
 }

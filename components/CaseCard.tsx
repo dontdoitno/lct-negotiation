@@ -47,7 +47,7 @@ export function CaseCard({ level, index }: { level: LevelCard; index: number }) 
       <div className="mt-auto flex items-center justify-between border-t border-line pt-3">
         <div className="flex gap-0.5">
           {[0, 1, 2].map((i) => (
-            <span key={i} className={i < level.bestStars ? "text-accent" : "text-line-strong"}>
+            <span key={i} className={i < level.bestStars ? "text-gold" : "text-line-strong"}>
               ★
             </span>
           ))}

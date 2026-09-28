@@ -40,7 +40,7 @@ export default function LearnPage() {
           <div key={label} className="flex flex-1 flex-col items-center gap-1.5">
             <div
               className="h-1 w-full rounded-full transition-colors duration-300"
-              style={{ background: i <= step ? "var(--color-accent)" : "var(--color-panel-raised)" }}
+              style={{ background: i <= step ? "var(--color-gold)" : "var(--color-panel-raised)" }}
             />
             <span className={`label-case hidden text-[9px] sm:block ${i === step ? "text-ink" : "text-ink-faint"}`}>
               {label}
@@ -68,7 +68,7 @@ export default function LearnPage() {
             ← Назад
           </button>
           {step < lastStep && (
-            <button onClick={next} className="label-case rounded-md bg-accent px-6 py-2.5 text-xs font-semibold text-accent-ink">
+            <button onClick={next} className="label-case rounded-md bg-gold px-6 py-2.5 text-xs font-semibold text-gold-ink">
               Далее →
             </button>
           )}
@@ -209,7 +209,7 @@ function DoneStep() {
       </p>
       <Link
         href="/brief/s1-rational"
-        className="label-case mt-2 w-fit rounded-md bg-accent px-6 py-3 text-xs font-semibold text-accent-ink"
+        className="label-case mt-2 w-fit rounded-md bg-gold px-6 py-3 text-xs font-semibold text-gold-ink"
       >
         Начать первый разговор →
       </Link>

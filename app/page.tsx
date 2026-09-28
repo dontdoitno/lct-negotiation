@@ -24,7 +24,7 @@ export default async function LevelMapPage() {
       <div className="flex items-center gap-3">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel-raised">
           <div
-            className="h-full rounded-full bg-accent transition-[width] duration-500"
+            className="h-full rounded-full bg-gold transition-[width] duration-500"
             style={{ width: `${(passed / Math.max(1, levels.length)) * 100}%` }}
           />
         </div>

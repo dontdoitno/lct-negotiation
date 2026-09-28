@@ -9,7 +9,7 @@ export function TurnCounter({ turn, limit }: { turn: number; limit: number }) {
           <div
             key={i}
             className="h-1.5 flex-1 rounded-[1px] transition-colors duration-300"
-            style={{ background: i < turn ? "var(--color-accent)" : "var(--color-panel-raised)" }}
+            style={{ background: i < turn ? "var(--color-gold)" : "var(--color-panel-raised)" }}
           />
         ))}
       </div>

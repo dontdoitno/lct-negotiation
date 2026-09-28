@@ -83,7 +83,7 @@ export function TaxonomyQuiz({ onDone }: { onDone: () => void }) {
       {answered && (
         <button
           onClick={next}
-          className="label-case ml-auto rounded-md bg-accent px-5 py-2.5 text-xs font-semibold text-accent-ink"
+          className="label-case ml-auto rounded-md bg-gold px-5 py-2.5 text-xs font-semibold text-gold-ink"
         >
           {isLast ? "Завершить" : "Следующий вопрос →"}
         </button>

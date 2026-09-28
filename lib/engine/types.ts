@@ -96,6 +96,11 @@ export interface Persona {
   linesByResistance: { high: string[]; medium: string[]; low: string[] };
   exitLine: string;
   hiddenFailure: boolean;
+  // Briefing-screen copy, derived from backstory/temperament. What the player
+  // is allowed to know before the call — never the hidden interests.
+  tenure?: string;
+  behaviorNote?: string;
+  trigger?: string; // why this conversation is happening now
 }
 
 export interface PlayerGoal {
@@ -118,6 +123,10 @@ export interface Scenario {
   config: { domain: string; difficulty: number; tone: string };
   managerResources?: string[]; // what the player can offer — keeps the persona from asking for/rejecting on things off the table
   managerConstraints?: string[]; // what the player explicitly cannot do
+  // Briefing-screen copy. Prose forms of playerRole / playerGoals, written for
+  // the player to read in 20 seconds rather than for the engine to score.
+  playerRoleDescription?: string;
+  successCriterion?: string;
 }
 
 export type Ending = "success" | "failed" | "timeout" | null;

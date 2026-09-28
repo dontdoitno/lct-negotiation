@@ -1,5 +1,8 @@
-import { Persona, Scenario, SessionState } from "@/lib/engine/types";
+import { MetricCode, Persona, Scenario, SessionState } from "@/lib/engine/types";
 import { GoalStatus } from "@/components/call/GoalsPanel";
+import { turnIsPositive } from "@/lib/call/metricDirection";
+
+export type Deltas = Partial<Record<MetricCode, number>>;
 
 export interface TranscriptItem {
   id: string;
@@ -7,6 +10,7 @@ export interface TranscriptItem {
   text: string;
   rationale?: string;
   positive?: boolean;
+  deltas?: Deltas;
 }
 
 export interface CallState {
@@ -14,7 +18,9 @@ export interface CallState {
   scenario: Scenario | null;
   persona: Persona | null;
   state: SessionState | null;
-  deltas: Partial<Record<"R" | "T" | "A", number>>;
+  deltas: Deltas;
+  /** Increments on every ANALYSIS event — drives the 3s metric highlight. */
+  deltaSeq: number;
   goals: GoalStatus[];
   turn: number;
   turnsLeft: number;
@@ -33,6 +39,7 @@ export const initialCallState: CallState = {
   persona: null,
   state: null,
   deltas: {},
+  deltaSeq: 0,
   goals: [],
   turn: 0,
   turnsLeft: 0,
@@ -48,7 +55,7 @@ export const initialCallState: CallState = {
 export type CallAction =
   | { type: "INIT"; payload: { scenario: Scenario; persona: Persona; state: SessionState; openingLine: string | null; transcript: TranscriptItem[]; status: CallState["status"] } }
   | { type: "SEND_START"; payload: { text: string; id: string } }
-  | { type: "ANALYSIS"; payload: { rationale: string; deltas: Partial<Record<"R" | "T" | "A", number>> } }
+  | { type: "ANALYSIS"; payload: { rationale: string; deltas: Deltas } }
   | { type: "STATE"; payload: { raw: SessionState; goals: GoalStatus[]; turn: number; turnsLeft: number } }
   | { type: "REVEAL"; payload: { text: string } }
   | { type: "NPC_CHUNK"; payload: { text: string } }
@@ -62,7 +69,8 @@ function uid() {
 
 export function callReducer(s: CallState, action: CallAction): CallState {
   switch (action.type) {
-    case "INIT":
+    case "INIT": {
+      const lastScored = [...action.payload.transcript].reverse().find((t) => t.speaker === "player" && t.deltas);
       return {
         ...s,
         ready: true,
@@ -70,29 +78,31 @@ export function callReducer(s: CallState, action: CallAction): CallState {
         persona: action.payload.persona,
         state: action.payload.state,
         status: action.payload.status,
+        deltas: lastScored?.deltas ?? {},
         turn: action.payload.state.turn,
         turnsLeft: action.payload.scenario.turnLimit - action.payload.state.turn,
-        goals: action.payload.scenario.playerGoals.map((g) => ({
-          id: g.id,
-          text: g.text,
-          progress: 0,
-          done: false,
-        })),
+        goals: action.payload.scenario.playerGoals.map((g) => ({ id: g.id, text: g.text, progress: 0, done: false })),
         transcript: action.payload.transcript,
       };
+    }
 
     case "SEND_START": {
       const item: TranscriptItem = { id: action.payload.id, speaker: "player", text: action.payload.text };
-      return { ...s, sending: true, portraitStatus: "thinking", transcript: [...s.transcript, item] };
+      return { ...s, sending: true, error: null, portraitStatus: "thinking", transcript: [...s.transcript, item] };
     }
 
     case "ANALYSIS": {
-      const rTotal = action.payload.deltas.R ?? 0;
-      const positive = rTotal <= 0;
-      const withRationale = s.transcript.map((t, i) =>
-        i === s.transcript.length - 1 ? { ...t, rationale: action.payload.rationale, positive } : t,
-      );
-      return { ...s, deltas: action.payload.deltas, transcript: withRationale };
+      const { rationale, deltas } = action.payload;
+      const positive = turnIsPositive(deltas);
+      let idx = -1;
+      for (let i = s.transcript.length - 1; i >= 0; i--) {
+        if (s.transcript[i].speaker === "player") {
+          idx = i;
+          break;
+        }
+      }
+      const transcript = s.transcript.map((t, i) => (i === idx ? { ...t, rationale, positive, deltas } : t));
+      return { ...s, deltas, deltaSeq: s.deltaSeq + 1, transcript };
     }
 
     case "STATE":

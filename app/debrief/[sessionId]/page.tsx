@@ -74,7 +74,7 @@ export default function DebriefPage() {
           <h1 className="font-display text-2xl font-bold text-ink">Разбор разговора</h1>
           <div className="flex gap-0.5 text-xl">
             {[0, 1, 2].map((i) => (
-              <span key={i} className={i < data.stars ? "text-accent" : "text-line-strong"}>
+              <span key={i} className={i < data.stars ? "text-gold" : "text-line-strong"}>
                 ★
               </span>
             ))}
@@ -187,14 +187,14 @@ export default function DebriefPage() {
           <button
             key={bp}
             onClick={() => replayFrom(bp)}
-            className="label-case rounded-md border border-line-strong px-4 py-2.5 text-xs font-semibold text-ink hover:border-accent"
+            className="label-case rounded-md border border-line-strong px-4 py-2.5 text-xs font-semibold text-ink hover:border-gold"
           >
             Переиграть с хода {bp}
           </button>
         ))}
         <Link
           href={`/brief/${data.persona.id}`}
-          className="label-case rounded-md bg-accent px-4 py-2.5 text-xs font-semibold text-accent-ink"
+          className="label-case rounded-md bg-gold px-4 py-2.5 text-xs font-semibold text-gold-ink"
         >
           Пройти заново
         </Link>

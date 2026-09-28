@@ -1,5 +1,28 @@
-@import "tailwindcss";
+/* Layer order and import sequence are prescribed by the Astryx Tailwind
+   bridge (`astryx docs styling`) — it only works if the core CSS and the
+   theme load before Tailwind's utilities. */
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
 
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+@import "../razbor.css";
+@import "@astryxdesign/core/tailwind-theme.css";
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* ---------------------------------------------------------------------------
+   Legacy dark palette.
+
+   Still drives every screen except the call: level map, brief, reflection,
+   debrief, learn. The call screen runs on the Astryx theme (razbor) instead,
+   so the two coexist deliberately rather than by accident. Migrating the
+   remaining screens onto theme tokens is a separate pass.
+
+   `accent` here was renamed to `gold` because the Astryx bridge owns
+   `--color-accent`: leaving both would have silently repainted every gold
+   button on the old screens with the theme's blue.
+--------------------------------------------------------------------------- */
 :root {
   --void: #0e1013;
   --panel: #16191f;
@@ -46,8 +69,17 @@
   --color-insight: var(--insight);
   --color-insight-soft: var(--insight-soft);
 
-  --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
+  --color-gold: var(--accent);
+  --color-gold-ink: var(--accent-ink);
+
+  /* The six metric roles come from the razbor theme's localTokens, which are
+     light/dark aware and contrast-checked against both the surface and the
+     canvas. Exposed as utilities so the call screen can write
+     `text-metric-resistance` instead of an arbitrary var() value. */
+  --color-metric-resistance: var(--metric-resistance);
+  --color-metric-trust: var(--metric-trust);
+  --color-metric-adapt: var(--metric-adapt);
+  --color-metric-insight: var(--metric-insight);
 
   --font-display: var(--font-display), "Unbounded", ui-sans-serif, system-ui;
   --font-body: var(--font-body), "Manrope", ui-sans-serif, system-ui;

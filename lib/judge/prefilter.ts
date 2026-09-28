@@ -36,13 +36,18 @@ const INJECTION_REPLY: Record<PersonaType, string> = {
 // Deliberately short and extensible — this is a rule-based safety net, not
 // an attempt at exhaustive moderation. Add to these lists as real sessions
 // surface gaps.
+// Real phrasings put adjectives between the verb and the keyword ("игнорируй
+// все ПРЕДЫДУЩИЕ инструкции", "ты теперь ПРОСТО ассистент"), so each pattern
+// tolerates a few intervening words rather than demanding them adjacent.
+const GAP = String.raw`(?:\s+\S+){0,3}\s+`;
+
 const INJECTION_PATTERNS = [
-  /игнориру\S*\s+(все\s+)?(инструкц|промпт|систем)/i,
-  /забудь\s+(все\s+)?(инструкц|промпт|систем)/i,
-  /ты\s*[—-]?\s*(теперь\s+)?(ассистент|языков\S*\s+модел|нейросет|ии\b|ai\b)/i,
-  /ignore\s+(all\s+)?(previous|above)\s+instructions/i,
+  new RegExp(String.raw`игнориру\S*${GAP}(?:инструкц|промпт|систем|правил)`, "i"),
+  new RegExp(String.raw`забудь${GAP}(?:инструкц|промпт|систем|правил|роль|персонаж)`, "i"),
+  new RegExp(String.raw`ты${GAP}(?:ассистент|языков\S*\s+модел|нейросет|бот\b|ии\b|ai\b)`, "i"),
+  /ignore\s+(?:all\s+)?(?:previous|above)\s+instructions/i,
   /system\s*prompt/i,
-  /you\s+are\s+now\s+(an?\s+)?(assistant|ai|chatbot)/i,
+  /you\s+are\s+now\s+(?:an?\s+)?(?:assistant|ai|chatbot)/i,
   /разработчик\S*\s+режим/i,
   /developer\s+mode/i,
 ];
@@ -51,7 +56,10 @@ const ABUSE_WORDS = ["идиот", "дурак", "тупой", "тупица", "
 
 function isAbusive(text: string): boolean {
   const lower = text.toLowerCase();
-  return ABUSE_WORDS.some((w) => lower.includes(w)) || /[!?]{3,}/.test(text);
+  if (ABUSE_WORDS.some((w) => lower.includes(w))) return true;
+  // Shouting punctuation counts only alongside actual words — on its own
+  // ("12345 !!!") it's noise, which isOffTopic already handles.
+  return /[!?]{3,}/.test(text) && /[а-яёa-z]{3,}/i.test(text);
 }
 
 function isOffTopic(text: string): boolean {

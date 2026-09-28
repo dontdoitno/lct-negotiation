@@ -26,9 +26,9 @@ export function StartCallButton({ levelId }: { levelId: string }) {
     <button
       onClick={start}
       disabled={loading}
-      className="label-case rounded-md bg-accent px-6 py-3 text-xs font-semibold text-accent-ink transition-opacity hover:opacity-90 disabled:opacity-60"
+      className="rounded-md bg-accent-bg px-6 py-2.5 text-[15px] font-bold text-on-accent motion-safe:transition-opacity hover:opacity-90 disabled:opacity-60"
     >
-      {loading ? "Соединяем…" : "Подключиться к звонку"}
+      {loading ? "Соединяем…" : "Начать звонок"}
     </button>
   );
 }
