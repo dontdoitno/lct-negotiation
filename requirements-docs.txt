@@ -1,0 +1,8 @@
+# Сборка документации (mkdocs.yml, docs-site/).
+# Версии зафиксированы, чтобы локальная сборка и CI давали одинаковый результат.
+mkdocs==1.6.1
+mkdocs-shadcn==0.12.1
+# Тема shadcn не умеет mermaid, рендер диаграмм добавляет этот плагин.
+# Сама библиотека mermaid лежит в docs-site/js/, с CDN ничего не тянется.
+mkdocs-mermaid2-plugin==1.2.3
+pymdown-extensions==12.1

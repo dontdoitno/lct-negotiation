@@ -1,0 +1,90 @@
+site_name: Арена переговоров
+site_description: Документация тренажёра сложных разговоров руководителя с сотрудником
+site_url: https://dontdoitno.github.io/lct-negotiation/
+repo_url: https://github.com/dontdoitno/lct-negotiation
+repo_name: dontdoitno/lct-negotiation
+edit_uri: edit/main/docs-site/
+
+# Документация живёт в docs-site, а не в docs: в docs/ лежат исходные
+# спецификации продукта и психологическая методология, они не публикуются.
+docs_dir: docs-site
+site_dir: site
+
+theme:
+  name: shadcn
+  show_title: true
+  # Акцент совпадает с акцентом продукта (theme.ts в корне репозитория).
+  accent: "#3454D1"
+  pygments_style:
+    light: shadcn-light
+    dark: github-dark
+
+plugins:
+  # Поиск темы, а не встроенный в mkdocs: у shadcn свой индекс и своя палитра.
+  - shadcn/search
+  # Диаграммы в блоках ```mermaid. Сама тема mermaid не поддерживает,
+  # поэтому рендер подключается плагином.
+  - mermaid2:
+      # Библиотека лежит в репозитории, а не тянется с CDN: сборка не зависит
+      # от доступности unpkg, и диаграммы рисуются даже без интернета у читателя.
+      javascript: js/mermaid.min.js
+      arguments:
+        # Строка с ^ отдаётся в страницу как готовый JS, а не как строка.
+        # Тёмный режим темы shadcn это класс dark на <html>, отсюда и читаем.
+        theme: "^document.documentElement.classList.contains('dark') ? 'dark' : 'default'"
+
+# Правка lang="en" из шаблона темы на lang="ru".
+hooks:
+  - docs_hooks.py
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+      toc_depth: 3
+  # Подсветка кода Pygments. css_class именно codehilite: этот класс
+  # стилизует тема, вариант highlight по умолчанию останется без стилей.
+  - pymdownx.highlight:
+      css_class: codehilite
+  # Блоки mermaid выводятся как <div class="mermaid"> и не уходят
+  # в подсветку кода. Без этого исключения Pygments съедает диаграммы.
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+  - pymdownx.blocks.details
+  - pymdownx.blocks.caption
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Обзор: index.md
+  - 1. Продукт:
+      - Аудитория и задача: product/audience.md
+      - Почему тренажёр, а не тренинг: product/value.md
+      - Границы MVP: product/scope.md
+  - 2. Архитектура и логика симуляции:
+      - Общая архитектура: architecture/overview.md
+      - Движок состояния: architecture/engine.md
+      - Сценарии и ветвление: architecture/scenarios.md
+      - Конфигурируемость: architecture/configuration.md
+      - Обратная связь по итогам: architecture/feedback.md
+      - LLM-судья, эксперимент: architecture/judge.md
+  - 3. Запуск:
+      - Быстрый старт: run/quickstart.md
+      - Переменные окружения: run/environment.md
+      - Проверка после перезапуска: run/restart.md
+      - Если что-то не работает: run/troubleshooting.md
+  - 4. Технологии и внешние сервисы:
+      - Стек и библиотеки: tech/stack.md
+      - Внешние сервисы и ключи: tech/services.md
+      - Тесты: tech/testing.md
+  - Справочник:
+      - Карта экранов и API: reference/routes.md
+      - Метрики и действия: reference/metrics.md
+      - Формат контента: reference/content.md

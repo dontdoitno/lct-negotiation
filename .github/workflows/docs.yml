@@ -1,0 +1,46 @@
+name: docs
+
+# Собирает MkDocs и публикует результат в ветку gh-pages.
+# В настройках репозитория нужно один раз выставить
+# Settings -> Pages -> Build and deployment -> Deploy from a branch -> gh-pages / (root).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gh-deploy коммитит в ветку gh-pages, поэтому нужна полная история.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements-docs.txt
+
+      # strict падает на битой ссылке или неизвестной странице в nav,
+      # чтобы расхождение находилось в CI, а не читателем.
+      - run: mkdocs build --strict
+
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdocs gh-deploy --force --no-history
