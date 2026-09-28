@@ -9,6 +9,7 @@ on:
     paths:
       - "docs-site/**"
       - "mkdocs.yml"
+      - "docs_hooks.py"
       - "requirements-docs.txt"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
@@ -33,6 +34,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          # Файл зависимостей называется не requirements.txt, поэтому путь
+          # нужно назвать явно: без этого шаг кеша падает, не найдя файл.
+          cache-dependency-path: requirements-docs.txt
 
       - run: pip install -r requirements-docs.txt
 
