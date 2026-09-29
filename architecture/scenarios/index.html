@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<script>
+        /* const base_url = "https://dontdoitno.github.io/lct-negotiation/"; */
+        const base_url = (new URL("../..", window.location)).href.replace(/\/+$/, ""); /* for search plugin notably */
+        /* const root_relative_url = "../.."; */
+    </script>
+<script integrity="sha384-m6cZ+Whl1ci89lidlu8DH4C+sZLNOYBvImtjUIhUK+iaNffXhqtbYgBVuuPfRsa0" src="../../js/dark.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Сценарии и ветвление</title>
+<link href="https://dontdoitno.github.io/lct-negotiation/architecture/scenarios/" rel="canonical"/>
+<!-- Open Graph (Facebook, LinkedIn) -->
+<meta content="Сценарии и ветвление" property="og:title"/>
+<meta content="https://dontdoitno.github.io/lct-negotiation/architecture/scenarios/" property="og:url"/>
+<!-- Twitter Card -->
+<meta content="Сценарии и ветвление" name="twitter:title"/>
+<!-- JSON-LD Structured Data -->
+<link href="../../img/favicon.ico" rel="icon"/>
+<link href="../../css/base.css" rel="stylesheet"/>
+<link href="../../css/geist.css" rel="stylesheet"/>
+<style>
+        :root {
+            --theme-accent: #3454D1;
+        }
+    </style>
+<script integrity="sha384-V2jkXRy811qODUbfkLlkVJYBbf4h6XHAEjcU6ReASBPrJvTrlYh4GrI4t6GCju6n" src="../../js/callbacks.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("a.headerlink").forEach(function (link) {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+
+                // Build the full URL with the anchor fragment
+                const url = window.location.origin + window.location.pathname + this.getAttribute("href");
+
+                navigator.clipboard.writeText(url).then(function () {
+                    // Optional: brief visual feedback
+                });
+            });
+        });
+    });
+</script>
+</head>
+<body class="text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)] theme-default">
+<div class="bg-background relative z-10 flex min-h-svh flex-col" id="inner-body">
+<header class="bg-background sticky top-0 z-50 w-full" view-transition-name="header">
+<div class="container-wrapper 3xl:fixed:px-0 px-6">
+<div class="3xl:fixed:container flex h-(--header-height) items-center gap-2 **:data-[slot=separator]:!h-4">
+<button aria-controls="radix-«Rmplb»" aria-expanded="false" aria-haspopup="dialog" class="group whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground px-4 py-2 has-[&gt;svg]:px-3 extend-touch-target h-8 touch-manipulation items-center justify-start gap-2.5 !p-0 hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent dark:hover:bg-transparent flex lg:hidden" data-slot="popover-trigger" data-state="closed" id="menu-button" onclick="onMobileMenuButtonClick(event)" type="button">
+<div class="relative flex h-8 w-4 items-center justify-center">
+<div class="relative size-4">
+<!-- 16px x 16px -->
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+<line class="group-data-[state=open]:translate-y-[2.25px] group-data-[state=open]:-translate-x-[2.25px] group-data-[state=open]:rotate-45 transition-all duration-300 origin-center" x1="0" x2="16" y1="5" y2="5"></line>
+<line class="group-data-[state=open]:-translate-y-[2.25px] group-data-[state=open]:-translate-x-[2.25px] group-data-[state=open]:-rotate-45 transition-all duration-300 origin-center" x1="0" x2="16" y1="11" y2="11"></line>
+</svg>
+</div>
+<span class="sr-only">Toggle Menu</span>
+</div>
+<span class="flex h-8 items-center text-lg leading-none font-medium">Menu</span>
+</button>
+<a class="items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-5 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 hidden h-8 lg:flex" data-slot="button" href="https://dontdoitno.github.io/lct-negotiation/">
+<span class="size-8 flex flex-row justify-center items-center">
+<svg class="size-5" viewbox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+<rect fill="none" height="256" width="256"></rect>
+<line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" x1="208" x2="128" y1="128" y2="208"></line>
+<line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" x1="192" x2="40" y1="40" y2="192"></line>
+</svg>
+</span>
+<h1 class="pr-2">Арена переговоров</h1>
+</a>
+<div class="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
+<div class="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+<div class="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+<button aria-controls="radix-_r_1_" aria-expanded="false" aria-haspopup="dialog" class="inline-flex shrink-0 items-center gap-2 text-sm whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-4 border bg-background hover:text-accent-foreground dark:border-input dark:hover:bg-input/50 px-4 py-2 has-[&gt;svg]:px-3 relative h-8 w-full justify-start rounded-lg pl-3 font-normal text-foreground shadow-none hover:bg-muted/50 sm:pr-12 md:w-48 lg:w-56 xl:w-64 dark:bg-card" data-size="default" data-slot="dialog-trigger" data-state="closed" data-variant="outline" onclick="onSearchBarClick(event)" type="button">
+<span class="hidden lg:inline-flex">Search documentation...</span>
+<span class="inline-flex lg:hidden">Search...</span>
+</button>
+</div>
+<dialog class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded-lg shadow-lg border overflow-hidden p-0" id="search-dialog" onclick="onSearchDialogClick(event)">
+<div class="w-lg gap-4">
+<div class="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground">
+<div class="flex h-9 items-center gap-2 border-b px-3" data-slot="command-input-wrapper"><svg class="lucide lucide-search size-4 shrink-0 opacity-50" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<circle cx="11" cy="11" r="8"></circle>
+<path d="m21 21-4.3-4.3"></path>
+</svg>
+<input aria-activedescendant="radix-«r1th»" aria-autocomplete="list" aria-controls="radix-«r1t6»" aria-expanded="true" aria-labelledby="radix-«r1t7»" autocomplete="off" autocorrect="off" class="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50" cmdk-input="" data-slot="command-input" id="radix-«r1t8»" oninput="onInputHandler(event)" placeholder="Search documentation..." role="combobox" spellcheck="false" type="text" value=""/>
+</div>
+</div>
+<div id="mkdocs-search-results">
+<!-- search results go there -->
+</div>
+</div>
+</dialog>
+<script>
+    document.removeEventListener("keydown", searchShortcutHandler);
+    document.addEventListener("keydown", searchShortcutHandler);
+</script>
+</div>
+<div class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px ml-2 hidden lg:block" data-orientation="vertical" data-slot="separator" role="none">
+</div>
+<a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 h-8 shadow-none" data-slot="button" href="https://github.com/dontdoitno/lct-negotiation" rel="noreferrer" target="_blank">
+<svg viewbox="0 0 438.549 438.549">
+<path d="M409.132 114.573c-19.608-33.596-46.205-60.194-79.798-79.8-33.598-19.607-70.277-29.408-110.063-29.408-39.781 0-76.472 9.804-110.063 29.408-33.596 19.605-60.192 46.204-79.8 79.8C9.803 148.168 0 184.854 0 224.63c0 47.78 13.94 90.745 41.827 128.906 27.884 38.164 63.906 64.572 108.063 79.227 5.14.954 8.945.283 11.419-1.996 2.475-2.282 3.711-5.14 3.711-8.562 0-.571-.049-5.708-.144-15.417a2549.81 2549.81 0 01-.144-25.406l-6.567 1.136c-4.187.767-9.469 1.092-15.846 1-6.374-.089-12.991-.757-19.842-1.999-6.854-1.231-13.229-4.086-19.13-8.559-5.898-4.473-10.085-10.328-12.56-17.556l-2.855-6.57c-1.903-4.374-4.899-9.233-8.992-14.559-4.093-5.331-8.232-8.945-12.419-10.848l-1.999-1.431c-1.332-.951-2.568-2.098-3.711-3.429-1.142-1.331-1.997-2.663-2.568-3.997-.572-1.335-.098-2.43 1.427-3.289 1.525-.859 4.281-1.276 8.28-1.276l5.708.853c3.807.763 8.516 3.042 14.133 6.851 5.614 3.806 10.229 8.754 13.846 14.842 4.38 7.806 9.657 13.754 15.846 17.847 6.184 4.093 12.419 6.136 18.699 6.136 6.28 0 11.704-.476 16.274-1.423 4.565-.952 8.848-2.383 12.847-4.285 1.713-12.758 6.377-22.559 13.988-29.41-10.848-1.14-20.601-2.857-29.264-5.14-8.658-2.286-17.605-5.996-26.835-11.14-9.235-5.137-16.896-11.516-22.985-19.126-6.09-7.614-11.088-17.61-14.987-29.979-3.901-12.374-5.852-26.648-5.852-42.826 0-23.035 7.52-42.637 22.557-58.817-7.044-17.318-6.379-36.732 1.997-58.24 5.52-1.715 13.706-.428 24.554 3.853 10.85 4.283 18.794 7.952 23.84 10.994 5.046 3.041 9.089 5.618 12.135 7.708 17.705-4.947 35.976-7.421 54.818-7.421s37.117 2.474 54.823 7.421l10.849-6.849c7.419-4.57 16.18-8.758 26.262-12.565 10.088-3.805 17.802-4.853 23.134-3.138 8.562 21.509 9.325 40.922 2.279 58.24 15.036 16.18 22.559 35.787 22.559 58.817 0 16.178-1.958 30.497-5.853 42.966-3.9 12.471-8.941 22.457-15.125 29.979-6.191 7.521-13.901 13.85-23.131 18.986-9.232 5.14-18.182 8.85-26.84 11.136-8.662 2.286-18.415 4.004-29.263 5.146 9.894 8.562 14.842 22.077 14.842 40.539v60.237c0 3.422 1.19 6.279 3.572 8.562 2.379 2.279 6.136 2.95 11.276 1.995 44.163-14.653 80.185-41.062 108.068-79.226 27.88-38.161 41.825-81.126 41.825-128.906-.01-39.771-9.818-76.454-29.414-110.049z" fill="currentColor">
+</path>
+</svg>
+<span class="text-muted-foreground w-8 text-xs tabular-nums" id="stargazers" onload="test()">
+</span>
+</a>
+<div class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px 3xl:flex hidden" data-orientation="vertical" data-slot="separator" role="none">
+</div>
+<button class="items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8 3xl:flex hidden" data-slot="button" onclick="toggleLayout(event)" title="Toggle layout">
+<span class="sr-only">Toggle layout</span>
+<svg class="lucide lucide-gallery-horizontal" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 3v18"></path>
+<rect height="18" rx="2" width="12" x="6" y="3"></rect>
+<path d="M22 3v18"></path>
+</svg>
+</button>
+<div class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px" data-orientation="vertical" data-slot="separator" role="none">
+</div>
+<button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 group/toggle extend-touch-target size-8" data-slot="button" onclick="onThemeSwitch(event)" title="Toggle theme">
+<svg class="size-4.5" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 0h24v24H0z" fill="none" stroke="none"></path>
+<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+<path d="M12 3l0 18"></path>
+<path d="M12 9l4.65 -4.65"></path>
+<path d="M12 14.3l7.37 -7.37"></path>
+<path d="M12 19.6l8.85 -8.85"></path>
+</svg>
+<span class="sr-only">Toggle theme</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 flex-col">
+<div class="container-wrapper flex flex-1 flex-col px-2">
+<div class="group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex w-full 3xl:fixed:container 3xl:fixed:px-3 min-h-min flex-1 items-start px-0 [--sidebar-width:220px] [--top-spacing:0] lg:grid lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)] lg:[--sidebar-width:240px] lg:[--top-spacing:calc(var(--spacing)*4)]" data-slot="sidebar-wrapper" style="--sidebar-width:calc(var(--spacing) * 72);--sidebar-width-icon:3rem;">
+<div class="w-(--sidebar-width) flex-col text-sidebar-foreground sticky top-[calc(var(--header-height)+0.6rem)] z-30 hidden h-[calc(100svh-10rem)] overscroll-none bg-transparent [--sidebar-menu-width:--spacing(56)] lg:flex" data-slot="sidebar">
+<div class="h-9"></div>
+<div class="absolute top-8 z-10 h-8 w-(--sidebar-menu-width) shrink-0 bg-gradient-to-b from-background via-background/80 to-background/50 blur-xs">
+</div>
+<div class="absolute top-12 right-2 bottom-0 hidden h-full w-px bg-gradient-to-b from-transparent via-border to-transparent lg:flex">
+</div>
+<div class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden mx-auto no-scrollbar w-(--sidebar-menu-width) overflow-x-hidden px-2" data-sidebar="content" data-slot="sidebar-content" view-transition-name="sidebar">
+<div class="relative flex w-full min-w-0 flex-col p-2 pt-6" data-sidebar="group" data-slot="sidebar-group">
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../..">
+
+        
+        Обзор
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="relative flex w-full min-w-0 flex-col p-2" data-sidebar="group" data-slot="sidebar-group">
+<div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground" data-sidebar="group-label" data-slot="sidebar-group-label">
+        1. Продукт</div>
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../product/audience/">
+
+        
+        Аудитория и задача
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../product/value/">
+
+        
+        Почему тренажёр, а не тренинг
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../product/scope/">
+
+        
+        Границы MVP
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="relative flex w-full min-w-0 flex-col p-2" data-sidebar="group" data-slot="sidebar-group">
+<div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground" data-sidebar="group-label" data-slot="sidebar-group-label">
+        2. Архитектура и логика симуляции</div>
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../overview/">
+
+        
+        Общая архитектура
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../engine/">
+
+        
+        Движок состояния
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="true" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="./">
+
+        
+        Сценарии и ветвление
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../configuration/">
+
+        
+        Конфигурируемость
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../feedback/">
+
+        
+        Обратная связь по итогам
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../judge/">
+
+        
+        LLM-судья, эксперимент
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="relative flex w-full min-w-0 flex-col p-2" data-sidebar="group" data-slot="sidebar-group">
+<div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground" data-sidebar="group-label" data-slot="sidebar-group-label">
+        3. Запуск</div>
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../run/quickstart/">
+
+        
+        Быстрый старт
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../run/deploy/">
+
+        
+        Деплой на Vercel
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../run/environment/">
+
+        
+        Переменные окружения
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../run/restart/">
+
+        
+        Проверка после перезапуска
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../run/troubleshooting/">
+
+        
+        Если что-то не работает
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="relative flex w-full min-w-0 flex-col p-2" data-sidebar="group" data-slot="sidebar-group">
+<div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground" data-sidebar="group-label" data-slot="sidebar-group-label">
+        4. Технологии и внешние сервисы</div>
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../tech/stack/">
+
+        
+        Стек и библиотеки
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../tech/services/">
+
+        
+        Внешние сервисы и ключи
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../tech/testing/">
+
+        
+        Тесты
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="relative flex w-full min-w-0 flex-col p-2" data-sidebar="group" data-slot="sidebar-group">
+<div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground" data-sidebar="group-label" data-slot="sidebar-group-label">
+        5. Админка</div>
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../admin/overview/">
+
+        
+        Контур администратора
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../admin/scenarios/">
+
+        
+        Список сценариев
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../admin/constructor/">
+
+        
+        Конструктор
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../admin/generation/">
+
+        
+        Генерация черновика
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../admin/test-run/">
+
+        
+        Тест-прогон
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../admin/analytics/">
+
+        
+        Аналитика
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="relative flex w-full min-w-0 flex-col p-2" data-sidebar="group" data-slot="sidebar-group">
+<div class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground" data-sidebar="group-label" data-slot="sidebar-group-label">
+        Справочник</div>
+<div class="w-full text-sm" data-sidebar="group-content" data-slot="sidebar-group-content">
+<ul class="flex w-full min-w-0 flex-col gap-0.5" data-sidebar="menu" data-slot="sidebar-menu">
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../reference/routes/">
+
+        
+        Карта экранов и API
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../reference/metrics/">
+
+        
+        Метрики и действия
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+<li class="group/menu-item relative" data-sidebar="menu-item" data-slot="sidebar-menu-item">
+<a class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&amp;&gt;span:last-child]:truncate [&amp;&gt;svg]:size-4 [&amp;&gt;svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48" data-active="false" data-sidebar="menu-button" data-size="default" data-slot="sidebar-menu-button" href="../../reference/content/">
+
+        
+        Формат контента
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="sticky -bottom-1 z-10 h-16 shrink-0 bg-gradient-to-t from-background via-background/80 to-background/50 blur-xs">
+</div>
+</div>
+</div>
+<div class="h-full w-full">
+<div class="flex items-stretch text-[1.05rem] sm:text-[15px] xl:w-full" data-slot="docs">
+<div class="flex min-w-0 flex-1 flex-col">
+<div class="h-(--top-spacing) shrink-0"></div>
+<article class="w-full" view-transition-name="page">
+<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2">
+<div class="flex items-start justify-between" id="page-header">
+<h1 class="scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
+          Сценарии и ветвление
+        </h1>
+<div class="flex items-center gap-2 pt-1.5">
+<button class="secondary cursor-pointer" data-slot="button" onclick="fetch(`../..`).then((r) =&gt; r.text()).then((text) =&gt; navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })]))">
+<svg class="tabler-icon tabler-icon-copy" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z">
+</path>
+<path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path>
+</svg>
+<span class="max-md:hidden">Copy Page</span>
+</button>
+<a class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7" data-slot="button" href="../engine/" id="previous-button">
+<svg class="tabler-icon tabler-icon-arrow-left" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 12l14 0"></path>
+<path d="M5 12l6 6"></path>
+<path d="M5 12l6 -6"></path>
+</svg>
+<span class="sr-only">Previous</span>
+</a>
+<a class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7" data-slot="button" href="../configuration/" id="next-button">
+<span class="sr-only">Next</span>
+<svg class="tabler-icon tabler-icon-arrow-right" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 12l14 0"></path>
+<path d="M13 18l6 -6"></path>
+<path d="M13 6l6 6"></path>
+</svg>
+</a>
+</div>
+</div>
+</div>
+<div class="flex justify-end items-center">
+</div>
+</div>
+<div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
+<h1 id="_1">Сценарии и ветвление<a class="headerlink" href="#_1" title="Permanent link">¶</a></h1>
+<h2 id="_2">На чём держится результат<a class="headerlink" href="#_2" title="Permanent link">¶</a></h2>
+<p>Гибрид с жёстким разделением ролей. Правила решают, что произошло. Модель решает, какими словами это сказано.</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Что решается</th>
+<th>Кто решает</th>
+<th>Где это в коде</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Какие действия совершил игрок</td>
+<td>Эвристика на ключевых словах, опционально модель</td>
+<td><code>lib/llm/analyzer.ts</code></td>
+</tr>
+<tr>
+<td>Как эти действия изменили состояние</td>
+<td>Матрица реакций персонажа, чистый TypeScript</td>
+<td><code>lib/engine/state.ts</code></td>
+</tr>
+<tr>
+<td>Раскрылся ли скрытый интерес</td>
+<td>Порог доверия и серия конструктивных ходов</td>
+<td><code>lib/engine/state.ts</code></td>
+</tr>
+<tr>
+<td>Закончился ли разговор и чем</td>
+<td>Четыре правила финала</td>
+<td><code>lib/engine/endings.ts</code></td>
+</tr>
+<tr>
+<td>Какими словами сотрудник это произносит</td>
+<td>Языковая модель, на входе уже посчитанное состояние</td>
+<td><code>lib/llm/actor.ts</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Ни одно решение об исходе модели не передаётся. Если модель отвалилась, разговор продолжается на заготовленных репликах персонажа, и метрики при этом считаются точно так же. Проверить это можно, поставив <code>MOCK_MODE="true"</code>: продукт остаётся полностью играбельным без сети.</p>
+<p>Чистой генерации сценария моделью в продукте нет, и это осознанный отказ. Ради воспроизводимости исхода и ради того, чтобы психолог мог править поведение персонажа, не трогая промпты.</p>
+<h2 id="_3">Из чего состоит уровень<a class="headerlink" href="#_3" title="Permanent link">¶</a></h2>
+<p>Сценарий это одна запись в базе, в которой ситуация и собеседник лежат вместе. Шесть готовых загружены сидами, по три типа личности на каждую из двух тем. Новые создаёт администратор в <a href="../../admin/constructor/">конструкторе</a>.</p>
+<div class="mermaid">flowchart LR
+    ADMIN["Конструктор<br/>администратора"] --&gt; DRAFT["Черновик"]
+    SEED["Сиды из content/*.json"] --&gt; PUB
+    DRAFT --&gt;|Публикация| PUB[("Опубликованные сценарии<br/>в базе")]
+    PUB --&gt; CAT["Каталог:<br/>группы по сфере и теме"]
+
+    subgraph WHAT["Что внутри одной записи"]
+        CTX["Ситуация:<br/>сфера, тема, роли, контекст"]
+        NPC["Собеседник:<br/>характер, цель, слои интересов"]
+        RULES["Правила:<br/>матрица реакций, метрики, лимит"]
+    end
+
+    PUB -.- WHAT
+</div>
+<p>Одна запись задаёт и ситуацию, и собеседника: сферу, тему, роли сторон, контекст, цели, лимит ходов, характер, слои скрытых интересов, матрицу реакций, а также что игрок может предложить и чего не может. Списки <code>managerResources</code> и <code>managerConstraints</code> попадают в промпт актёра, поэтому сотрудник не требует невозможного и не отвергает реальные предложения как невозможные.</p>
+<p>Матрица реакций покрывает девятнадцать действий и шесть метрик. Списки адаптивных и неадаптивных действий приходят из пресета тона, заготовленные реплики офлайн-режима тоже.</p>
+<p>Порядок внутри группы фиксирован педагогикой, а не алфавитом: рациональный, затем тревожный, затем агрессивный. Сначала освоить механику на том, кто говорит прямо, потом учиться слышать несказанное, потом держать позицию под давлением. Порядок задан в <code>lib/scenarios/runtime.ts</code>.</p>
+<p>Полное описание полей на странице <a href="../../reference/content/">Модель сценария</a>.</p>
+<h2 id="_4">Где возникает ветвление<a class="headerlink" href="#_4" title="Permanent link">¶</a></h2>
+<p>Ветвление здесь не дерево заранее написанных реплик. Реплик в дереве было бы конечное число, а разговор идёт свободным текстом. Ветвление создаётся тремя механизмами.</p>
+<h3 id="_5">Расхождение через матрицу реакций<a class="headerlink" href="#_5" title="Permanent link">¶</a></h3>
+<p>Одна и та же фраза руководителя ведёт разговор в разные места в зависимости от того, кто напротив и в каком он состоянии. Действие даёт разные дельты по матрице персонажа, дельты меняют уровень сопротивления, а уровень сопротивления переключает набор реплик собеседника между тремя корзинами: высокое, среднее, низкое.</p>
+<div class="mermaid">flowchart TD
+    Q["«Давай к делу, нам нужно уложиться в срок»"] --&gt; ANA["Анализатор: ignore_emotion"]
+    ANA --&gt; A1["Тревожный:<br/>сопротивление вверх,<br/>доверие вниз"]
+    ANA --&gt; A2["Рациональный:<br/>почти без реакции"]
+    ANA --&gt; A3["Агрессивный:<br/>сопротивление вверх сильно"]
+    A1 --&gt; B1["Замолкает, отвечает<br/>короче, слои закрываются"]
+    A2 --&gt; B2["Переходит к фактам<br/>вместе с вами"]
+    A3 --&gt; B3["Сопротивление 90+,<br/>до срыва два хода"]
+</div>
+<h3 id="_6">Слои скрытых интересов<a class="headerlink" href="#_6" title="Permanent link">¶</a></h3>
+<p>Основная развилка сценария проходит по тому, сколько слоёв вы успели раскрыть. У персонажей их три или четыре, каждый следующий требует больше доверия, и раскрываются они строго по порядку.</p>
+<p>Отсюда качественно разные концовки одного и того же уровня: разговор, где не раскрыт ни один слой, разговор с первым слоем и разговор, дошедший до последнего, дают разные цифры, разный текст разбора и разную оценку риска ухода. Нераскрытые слои показываются в разборе полностью, потому что главный вывод обычно там, куда разговор не дошёл.</p>
+<h3 id="_7">Форк сессии с точки слома<a class="headerlink" href="#_7" title="Permanent link">¶</a></h3>
+<p>Разговор можно продолжить заново с любого хода. <code>POST /api/session/:id/replay</code> с номером хода делает следующее:</p>
+<ol>
+<li>Находит исходную сессию со всеми ходами.</li>
+<li>Оставляет ходы с номером не больше указанного.</li>
+<li>Берёт состояние из поля <code>stateAfter</code> последнего оставленного хода. Если указан ход 0, состояние создаётся с нуля.</li>
+<li>Создаёт новую сессию со ссылкой <code>parentId</code> на исходную и номером <code>branchTurn</code>.</li>
+<li>Копирует оставленные ходы в новую сессию, чтобы история разговора осталась на месте.</li>
+</ol>
+<div class="mermaid">flowchart LR
+    subgraph ORIG["Исходная сессия"]
+        T1["ход 1"] --&gt; T2["ход 2"] --&gt; T3["ход 3"] --&gt; T4["ход 4:<br/>давление"] --&gt; T5["ход 5:<br/>сопротивление 95"] --&gt; F["срыв"]
+    end
+
+    T3 -. "replay branchTurn=3" .-&gt; B3
+
+    subgraph FORK["Форк, parentId ведёт к исходной"]
+        B3["ходы 1-3 скопированы,<br/>состояние восстановлено"] --&gt; B4["ход 4:<br/>открытый вопрос"] --&gt; B5["ход 5:<br/>раскрыт слой 2"]
+    end
+</div>
+<p>Так проверяется конкретная развилка, а не общее ощущение. Схема БД и API работают. Кнопки в интерфейсе для этого сейчас нет, о чём сказано в <a href="../../product/scope/">границах MVP</a>.</p>
+<h2 id="_8">Подбор первого разговора<a class="headerlink" href="#_8" title="Permanent link">¶</a></h2>
+<p>Опрос из трёх вопросов на входе: роль, актуальная тема, чем обычно заканчиваются такие разговоры. По ответам выбирается один уровень, <code>lib/flow/matching.ts</code>.</p>
+<p>Тема выбирает сценарий: перегрузка ведёт в <code>s1-overload</code>, просадка результатов в <code>s3-performance-drop</code>. Ответ про финал разговора выбирает тип личности: «скатывается в конфликт» даёт агрессивного, «он замолчал, и я не понял, что не так» даёт тревожного, «договорились, но потом не выполняется» даёт рационального.</p>
+<p>На первом визите открыт только подобранный разговор, остальные закрыты. После первого пройденного разговора доска открывается целиком, а над ней появляется сводная карта метрик и подсказка, что взять следующим. Подсказка выбирает уровень по самой слабой метрике из пройденных: у каждого типа личности в <code>matching.ts</code> указано, какие метрики он тренирует.</p>
+<p>Тип личности на карточке разговора не написан, вместо него стоит номер созвона. Определить характер собеседника участник должен сам по ходу разговора, и в разборе этот ответ не запрашивается.</p>
+</div>
+<script>
+    document.querySelectorAll('article h2, article h3').forEach((header) => {
+      toc.observer.observe(header);
+    });
+  </script>
+</article>
+<div class="mx-auto flex flex-wrap h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
+<a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 shadow-none" data-slot="button" href="../engine/">
+<svg class="tabler-icon tabler-icon-arrow-left" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 12l14 0"></path>
+<path d="M5 12l6 6"></path>
+<path d="M5 12l6 -6"></path>
+</svg>
+<span class="max-[500px]:hidden">Движок состояния</span>
+</a>
+<a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 ml-auto shadow-none" data-slot="button" href="../configuration/">
+<span class="max-[500px]:hidden">Конфигурируемость</span>
+<svg class="tabler-icon tabler-icon-arrow-right" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 12l14 0"></path>
+<path d="M13 18l6 -6"></path>
+<path d="M13 6l6 6"></path>
+</svg>
+</a>
+</div>
+</div>
+<dialog class="bg-transparent" id="bottom-sidebar" onclick="onBottomSidebarDialogClick(event)" style="position: fixed; left: 0px; top: 0px; transform: translate(0px, 58px); min-width: max-content; --radix-popper-transform-origin: 0% 0px; will-change: transform; z-index: 50; --radix-popper-available-width: 504px; --radix-popper-available-height: 857px; --radix-popper-anchor-width: 72.94999694824219px; --radix-popper-anchor-height: 32px;">
+<div class="text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 origin-(--radix-popover-content-transform-origin) border outline-hidden bg-background/90 no-scrollbar h-(--radix-popper-available-height) w-(--radix-popper-available-width) overflow-y-auto rounded-none border-none p-0 shadow-none backdrop-blur duration-100" data-align="start" data-side="bottom" data-slot="popover-content" data-state="open" role="dialog" style="--radix-popover-content-transform-origin: var(--radix-popper-transform-origin); --radix-popover-content-available-width: var(--radix-popper-available-width); --radix-popover-content-available-height: var(--radix-popper-available-height); --radix-popover-trigger-width: var(--radix-popper-anchor-width); --radix-popover-trigger-height: var(--radix-popper-anchor-height);" tabindex="-1">
+<div class="flex flex-col gap-12 overflow-auto px-6 py-6">
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">Menu</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../..">
+                        
+                        Обзор
+                        
+                    </a>
+</div>
+</div>
+<div class="flex flex-col gap-8">
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">1. Продукт</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../../product/audience/">
+                            
+                            Аудитория и задача
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../product/value/">
+                            
+                            Почему тренажёр, а не тренинг
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../product/scope/">
+                            
+                            Границы MVP
+                            
+                        </a>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">2. Архитектура и логика симуляции</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../overview/">
+                            
+                            Общая архитектура
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../engine/">
+                            
+                            Движок состояния
+                            
+                        </a>
+<a class="text-2xl font-medium" href="./">
+                            
+                            Сценарии и ветвление
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../configuration/">
+                            
+                            Конфигурируемость
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../feedback/">
+                            
+                            Обратная связь по итогам
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../judge/">
+                            
+                            LLM-судья, эксперимент
+                            
+                        </a>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">3. Запуск</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../../run/quickstart/">
+                            
+                            Быстрый старт
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../run/deploy/">
+                            
+                            Деплой на Vercel
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../run/environment/">
+                            
+                            Переменные окружения
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../run/restart/">
+                            
+                            Проверка после перезапуска
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../run/troubleshooting/">
+                            
+                            Если что-то не работает
+                            
+                        </a>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">4. Технологии и внешние сервисы</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../../tech/stack/">
+                            
+                            Стек и библиотеки
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../tech/services/">
+                            
+                            Внешние сервисы и ключи
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../tech/testing/">
+                            
+                            Тесты
+                            
+                        </a>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">5. Админка</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../../admin/overview/">
+                            
+                            Контур администратора
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../admin/scenarios/">
+                            
+                            Список сценариев
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../admin/constructor/">
+                            
+                            Конструктор
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../admin/generation/">
+                            
+                            Генерация черновика
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../admin/test-run/">
+                            
+                            Тест-прогон
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../admin/analytics/">
+                            
+                            Аналитика
+                            
+                        </a>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="text-muted-foreground text-sm font-medium">Справочник</div>
+<div class="flex flex-col gap-3">
+<a class="text-2xl font-medium" href="../../reference/routes/">
+                            
+                            Карта экранов и API
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../reference/metrics/">
+                            
+                            Метрики и действия
+                            
+                        </a>
+<a class="text-2xl font-medium" href="../../reference/content/">
+                            
+                            Формат контента
+                            
+                        </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</dialog>
+<div class="sticky top-[calc(var(--header-height)+1px)] ml-auto hidden h-[calc(100svh-var(--header-height)-var(--footer-height))] w-72 flex-col gap-4 overflow-hidden overscroll-none pb-8 xl:flex">
+<div class="h-(--top-spacing) shrink-0"></div>
+<div class="no-scrollbar overflow-y-auto px-8" id="toc" view-transition-name="toc">
+<div class="flex flex-col gap-2 p-4 pt-0 text-sm">
+<p class="text-muted-foreground bg-background sticky top-0 h-6 text-xs">On This Page</p>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="2" href="#_2" onclick="deferSetActiveTocLink('#_2');">
+            На чём держится результат
+        </a>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="2" href="#_3" onclick="deferSetActiveTocLink('#_3');">
+            Из чего состоит уровень
+        </a>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="2" href="#_4" onclick="deferSetActiveTocLink('#_4');">
+            Где возникает ветвление
+        </a>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="3" href="#_5" onclick="deferSetActiveTocLink('#_5');">
+            Расхождение через матрицу реакций
+        </a>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="3" href="#_6" onclick="deferSetActiveTocLink('#_6');">
+            Слои скрытых интересов
+        </a>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="3" href="#_7" onclick="deferSetActiveTocLink('#_7');">
+            Форк сессии с точки слома
+        </a>
+<a class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6" data-active="false" data-depth="2" href="#_8" onclick="deferSetActiveTocLink('#_8');">
+            Подбор первого разговора
+        </a>
+</div>
+<div class="h-12"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="group-has-[.section-soft]/body:bg-surface/40 3xl:fixed:bg-transparent dark:bg-transparent" view-transition-name="footer">
+<div class="container-wrapper px-4 xl:px-6">
+<div class="flex h-(--footer-height) items-center justify-between">
+<div class="text-muted-foreground w-full text-center text-xs leading-loose sm:text-sm">
+<a href="https://github.com/asiffer/mkdocs-shadcn">shadcn theme</a> provided by
+                <a href="https://github.com/asiffer">@asiffer</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<script src="../../search/main.js"></script>
+<script integrity="sha384-JLNLRFGzvOp0up707XKgSnAjjt1w5BF/+lbeLQvlf6mNwf0m89IXFdpNAk4t6Hcs" src="../../js/copy-button.js"></script>
+<script integrity="sha384-JBx6cBEiyhK1KPwZgBHiI6GDaAmvlOxMQFyWAZTEpW5Ifo5XQ2LBcJ61GVOumwF1" src="../../js/sidebar.js"></script>
+<script integrity="sha384-fNURFMRt0p/HqXnQnV4+CT9dX1GiU5F0fC3pFbg7gfoANytoUMErSW7suWSBkSuF" src="../../js/slider.js"></script>
+<script>updatePygmentsStylesheet();</script>
+<script>fetchStargazers("https://github.com/dontdoitno/lct-negotiation");</script>
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "where": {
+          "selector_matches": ["#next-button", "#previous-button"]
+      }
+    }
+  ]
+}
+</script>
+<script src="../../js/mermaid.min.js"></script><script>mermaid.initialize({
+    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default'
+});</script></body>
+</html>
