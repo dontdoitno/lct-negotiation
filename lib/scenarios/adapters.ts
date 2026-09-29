@@ -85,6 +85,7 @@ export function toPersona(def: ScenarioDefinition): Persona {
     typeLabel: preset?.label ?? "Свой характер",
     displayName: def.npcName,
     position: def.npcPosition,
+    avatar: def.avatar ?? undefined,
     voice: "alena",
     temperament: def.temperament,
     backstory: def.context.join(" "),

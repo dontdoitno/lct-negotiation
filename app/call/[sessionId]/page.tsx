@@ -192,6 +192,7 @@ export default function CallPage() {
         <main className="flex min-h-0 flex-col gap-4 overflow-hidden p-5">
           <CallStage
             name={persona.displayName}
+            avatar={persona.avatar}
             // position={persona.position}
             status={stageStatus}
             reply={reply}

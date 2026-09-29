@@ -97,6 +97,8 @@ export interface Persona {
   typeLabel: string;
   displayName: string;
   position: string;
+  /** Идентификатор видео-аватара, если администратор его выбрал. */
+  avatar?: string;
   voice: string;
   temperament: string;
   backstory: string;

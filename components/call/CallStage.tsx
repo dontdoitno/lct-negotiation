@@ -1,12 +1,15 @@
 "use client";
 
 import { NpcReplyCard } from "./NpcReplyCard";
+import { AvatarVideo } from "./AvatarVideo";
+import { isAvatarId } from "@/lib/scenarios/avatars";
 
 export type StageStatus = "speaking" | "listening" | "thinking";
 
 export function CallStage({
   name,
   // position,
+  avatar,
   status,
   reply,
   replyStreaming,
@@ -14,6 +17,7 @@ export function CallStage({
 }: {
   name: string;
   // position: string;
+  avatar?: string;
   status: StageStatus;
   reply: string | null;
   replyStreaming: boolean;
@@ -30,11 +34,15 @@ export function CallStage({
       className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-[1.5px] bg-skeleton transition-colors"
       style={{ borderColor: status === "speaking" ? "var(--color-accent)" : "var(--color-border-emphasized)" }}
     >
-      <div
-        className={`flex h-[170px] w-[170px] items-center justify-center rounded-full border-[1.5px] border-disabled bg-muted text-5xl text-secondary ${replyMode === "card" ? "mb-[150px]" : ""}`}
-      >
-        {name.charAt(0).toUpperCase()}
-      </div>
+      {isAvatarId(avatar) ? (
+        <AvatarVideo id={avatar} name={name} />
+      ) : (
+        <div
+          className={`flex h-[170px] w-[170px] items-center justify-center rounded-full border-[1.5px] border-disabled bg-muted text-5xl text-secondary ${replyMode === "card" ? "mb-[150px]" : ""}`}
+        >
+          {name.charAt(0).toUpperCase()}
+        </div>
+      )}
 
       <div className="absolute left-3.5 top-3.5 flex gap-1.5 text-sm">
         {chips.map((c) => (

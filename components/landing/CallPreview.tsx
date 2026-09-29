@@ -61,6 +61,8 @@ export function CallPreview() {
               <CallStage
                 name="Артём"
                 // position="Senior-разработчик"
+                // Тот же аватар, что достаётся Артёму в реальном сценарии.
+                avatar="avatar-2"
                 status="speaking"
                 reply="Я хочу перенос дедлайна и повышение зарплаты!"
                 replyStreaming={false}

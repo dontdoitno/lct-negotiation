@@ -115,6 +115,7 @@ async function seedScenarios() {
         context: contextLines(scenario, persona),
         npcName: persona.displayName,
         npcPosition: persona.position,
+        avatar: AVATAR_BY_PERSONA[persona.id] ?? null,
         tone: persona.type,
         characterNote: persona.behaviorNote ?? "",
         temperament: persona.temperament,
@@ -184,6 +185,30 @@ async function seedUsers() {
     console.log(`  аккаунт ${account.email}: создан`);
   }
 }
+
+/**
+ * Какой аватар достаётся какому персонажу.
+ *
+ * Первое правило — пол лица должен совпадать с именем персонажа. Второе —
+ * связь с характером разорвана: если бы у тревожного всегда было одно лицо,
+ * участник узнавал бы характер по внешности ещё до первой реплики, а определить
+ * его по поведению это половина задачи. Поэтому одно лицо достаётся разным
+ * характерам.
+ *
+ * Полностью развести не выходит: мужское лицо среди трёх всего одно, а женских
+ * персонажей три при двух женских лицах. Чтобы связка окончательно перестала
+ * читаться, аватаров нужно больше.
+ */
+const AVATAR_BY_PERSONA: Record<string, string> = {
+  // Мужские персонажи: аватар с мужским лицом только один.
+  "s1-rational": "avatar-2", // Дмитрий
+  "s1-aggressive": "avatar-2", // Артём
+  "s3-aggressive": "avatar-2", // Игорь
+  // Женские персонажи.
+  "s1-anxious": "avatar-1", // Ника
+  "s3-rational": "avatar-1", // Марина
+  "s3-anxious": "avatar-3", // Ольга
+};
 
 async function main() {
   console.log("Сиды:");

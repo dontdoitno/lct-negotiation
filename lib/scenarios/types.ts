@@ -1,4 +1,5 @@
 import { ActionCode, MetricCode } from "@/lib/engine/types";
+import { AvatarId } from "./avatars";
 
 /**
  * Сценарий как данные. Раньше ситуация и собеседник лежали в двух файлах
@@ -56,6 +57,8 @@ export interface ScenarioDefinition {
   // 2. Собеседник
   npcName: string;
   npcPosition: string;
+  /** Видео-аватар из /public/avatars. Пусто — круг с буквой. */
+  avatar: AvatarId | null;
   tone: Tone;
   characterNote: string;
   temperament: string;

@@ -19,6 +19,7 @@ function makeScenario(overrides: Partial<ScenarioDefinition> = {}): ScenarioDefi
     context: ["Проект идёт, сроки согласованы.", "Коллега на больничном."],
     npcName: "Ника",
     npcPosition: "Middle-разработчик",
+    avatar: null,
     tone: "anxious",
     characterNote: preset.characterNote,
     temperament: preset.temperament,

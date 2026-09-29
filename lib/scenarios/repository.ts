@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { isAvatarId } from "./avatars";
 import type { ScenarioDefinition as Row } from "@prisma/client";
 import {
   HiddenLayerInput,
@@ -29,6 +30,7 @@ function fromRow(row: Row): ScenarioDefinition {
     context: row.context as string[],
     npcName: row.npcName,
     npcPosition: row.npcPosition,
+    avatar: isAvatarId(row.avatar) ? row.avatar : null,
     tone: row.tone as Tone,
     characterNote: row.characterNote,
     temperament: row.temperament,
@@ -72,6 +74,7 @@ function toRowData(draft: ScenarioDraft) {
     context: draft.context,
     npcName: draft.npcName,
     npcPosition: draft.npcPosition,
+    avatar: draft.avatar,
     tone: draft.tone,
     characterNote: draft.characterNote,
     temperament: draft.temperament,

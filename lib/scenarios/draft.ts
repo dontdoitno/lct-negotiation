@@ -24,6 +24,7 @@ export function emptyDraft(): ScenarioDraft {
     context: [""],
     npcName: "",
     npcPosition: "",
+    avatar: null,
     tone: "rational",
     characterNote: preset.characterNote,
     temperament: preset.temperament,

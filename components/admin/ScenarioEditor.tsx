@@ -21,6 +21,7 @@ import {
   validateDraft,
 } from "@/lib/scenarios/draft";
 import { renderPrompt } from "@/lib/scenarios/promptRender";
+import { AvatarPicker } from "./AvatarPicker";
 import { DIFFICULTY_PRESETS, DOMAIN_OPTIONS } from "@/lib/scenarios/presets";
 import {
   DifficultyPreset,
@@ -405,6 +406,8 @@ export function ScenarioEditor({
                 />
               </Field>
             </div>
+
+            <AvatarPicker value={draft.avatar} onChange={(next) => patch({ avatar: next })} />
 
             <ChoiceRow
               label="Тон собеседника"

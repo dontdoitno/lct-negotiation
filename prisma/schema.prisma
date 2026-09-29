@@ -43,6 +43,8 @@ model ScenarioDefinition {
   // Секция 2. Собеседник
   npcName       String
   npcPosition   String
+  /// Видео-аватар из /public/avatars. Пусто — показывается круг с буквой.
+  avatar        String? // avatar-1 | avatar-2 | avatar-3
   tone          String // aggressive | anxious | rational | custom
   characterNote String // расшифровка характера для брифинга
   temperament   String

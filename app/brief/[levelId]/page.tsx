@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLevel } from "@/lib/scenarios/runtime";
 import { BriefBottomBar } from "@/components/brief/BriefBottomBar";
+import { avatarPosterSrc, isAvatarId } from "@/lib/scenarios/avatars";
 
 /**
  * Numbered section: marker rail on the left, content on the right.
@@ -50,7 +52,7 @@ export default async function BriefPage({ params }: { params: Promise<{ levelId:
       <main className="mx-auto max-w-wide px-8 pb-24 pt-5">
         <header className="flex flex-wrap items-center justify-between gap-3 pb-4">
           <Link
-            href="/"
+            href="/cases"
             className="text-[14px] text-primary underline underline-offset-4 hover:text-accent"
           >
             ← Назад к выбору сценария
@@ -62,16 +64,30 @@ export default async function BriefPage({ params }: { params: Promise<{ levelId:
           <Section index="01" title="Ситуация">
             <div className="grid grid-cols-1 gap-x-8 gap-y-5 xl:grid-cols-2">
               <div className="flex gap-4">
-                <div
-                  className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-full bg-muted text-[12px] text-secondary"
-                  aria-hidden="true"
-                >
-                  фото
-                </div>
+                {/* Тот же кадр, что и в окне звонка: собеседник должен быть
+                    узнаваем до разговора. Сценариям без аватара остаётся
+                    прежний серый круг. */}
+                {isAvatarId(persona.avatar) ? (
+                  <Image
+                    src={avatarPosterSrc(persona.avatar)}
+                    alt={`Фотография: ${persona.displayName}`}
+                    width={76}
+                    height={76}
+                    unoptimized
+                    className="h-[76px] w-[76px] shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-full bg-muted text-[12px] text-secondary"
+                    aria-hidden="true"
+                  >
+                    фото
+                  </div>
+                )}
                 <div>
                   <h3 className="text-[24px] font-bold leading-tight text-primary">{persona.displayName}</h3>
                   <p className="mt-0.5 text-[15px] text-secondary">
-                    {persona.position}
+                    {/* {persona.position} */}
                     {persona.tenure ? ` · ${persona.tenure}` : ""}
                   </p>
                   {persona.behaviorNote && (
