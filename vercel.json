@@ -5,5 +5,10 @@
     "app/api/**/route.ts": {
       "maxDuration": 120
     }
+  },
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": false
+    }
   }
 }
