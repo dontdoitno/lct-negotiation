@@ -2,7 +2,6 @@
 
 import { useSyncExternalStore } from "react";
 import { QuizAnswers } from "./types";
-import { PersonaType } from "./matching";
 
 /**
  * Client-side run state: quiz answers, whether the rules were seen, and guest
@@ -20,12 +19,6 @@ export interface FlowState {
   quizCompleted: boolean;
   rulesSeen: boolean;
   guest: boolean;
-  /**
-   * Which persona type the player named for a finished session, by session id.
-   * Stored so the answer is final: reloading the debrief shows the same verdict
-   * instead of letting you re-guess after seeing the reveal.
-   */
-  typeGuesses: Record<string, PersonaType>;
 }
 
 const EMPTY: FlowState = {
@@ -33,7 +26,6 @@ const EMPTY: FlowState = {
   quizCompleted: false,
   rulesSeen: false,
   guest: false,
-  typeGuesses: {},
 };
 
 let cache: FlowState = EMPTY;
@@ -91,12 +83,6 @@ export function markRulesSeen() {
 
 export function continueAsGuest() {
   write({ ...read(), guest: true });
-}
-
-export function setTypeGuess(sessionId: string, type: PersonaType) {
-  const s = read();
-  if (s.typeGuesses[sessionId]) return; // first answer is the answer
-  write({ ...s, typeGuesses: { ...s.typeGuesses, [sessionId]: type } });
 }
 
 export function resetFlow() {

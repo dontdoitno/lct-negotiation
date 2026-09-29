@@ -28,12 +28,23 @@ export function EndedView({
 
   // Turn-limit wording is about the clock, so it wins over the persona line.
   const title = endReason === "turn_limit" ? ENDED.turnLimit : ENDED.byPersona[personaType];
+  const lost = endReason === "ai_left";
 
   return (
     <main className="mx-auto flex min-h-screen max-w-reading flex-col items-start justify-center gap-5 px-6">
-      <Heading level={1} type="display-3">
-        {title}
-      </Heading>
+      <div className="flex flex-col gap-2">
+        {/* Итог называем прямо: собеседник ушёл, договориться не удалось. */}
+        {lost && (
+          <span className="block text-metric-resistance">
+            <Text type="label" color="inherit" display="block">
+              {ENDED.lost}
+            </Text>
+          </span>
+        )}
+        <Heading level={1} type="display-3">
+          {title}
+        </Heading>
+      </div>
       <Text as="p" display="block" type="large" color="secondary">
         {ENDED.subtitle}
       </Text>

@@ -55,7 +55,7 @@ export default async function BriefPage({ params }: { params: Promise<{ levelId:
           >
             ← Назад к выбору сценария
           </Link>
-          <p className="label-case text-[10px] text-secondary">Сценарий · {scenario.title}</p>
+          <h1 className="text-[19px] font-bold leading-tight text-primary">{scenario.title}</h1>
         </header>
 
         <div className="border-t-[1.5px] border-border-strong">

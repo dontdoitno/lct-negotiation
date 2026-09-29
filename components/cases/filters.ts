@@ -1,4 +1,4 @@
-import { DifficultyPreset, Tone } from "@/lib/scenarios/types";
+import { DifficultyPreset } from "@/lib/scenarios/types";
 
 /**
  * Состояние фильтров каталога. Живёт отдельно от разметки, потому что его
@@ -7,7 +7,6 @@ import { DifficultyPreset, Tone } from "@/lib/scenarios/types";
 export interface FilterState {
   query: string;
   domain: string | null;
-  tone: Tone | null;
   difficulty: DifficultyPreset | null;
   onlyUnplayed: boolean;
 }
@@ -15,7 +14,6 @@ export interface FilterState {
 export const EMPTY_FILTERS: FilterState = {
   query: "",
   domain: null,
-  tone: null,
   difficulty: null,
   onlyUnplayed: false,
 };

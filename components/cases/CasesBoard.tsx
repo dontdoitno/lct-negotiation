@@ -71,7 +71,6 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
     const query = filters.query.trim().toLowerCase();
     return tiles.filter((t) => {
       if (filters.domain && t.domain !== filters.domain) return false;
-      if (filters.tone && t.tone !== filters.tone) return false;
       if (filters.difficulty && t.difficulty !== filters.difficulty) return false;
       if (filters.onlyUnplayed && t.attempts > 0) return false;
       if (query && !t.title.toLowerCase().includes(query) && !t.topic.toLowerCase().includes(query)) {

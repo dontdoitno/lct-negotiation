@@ -48,7 +48,7 @@ export function CallStage({
       </div>
 
       <div className="absolute right-3.5 top-3.5 rounded-md border-[1.5px] border-border-strong bg-surface px-3 py-1.5 text-right">
-        <div className="text-[17px] text-primary">{name}</div>
+        <h2 className="text-[17px] font-bold leading-tight text-primary">{name}</h2>
         <div className="text-[13px] text-secondary">{position}</div>
       </div>
 

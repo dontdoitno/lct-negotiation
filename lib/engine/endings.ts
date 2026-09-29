@@ -5,6 +5,9 @@ export function checkEnding(state: SessionState, scenario: Scenario): Ending {
   // Обрыв разговора считается раньше победы по метрикам невозможен: угроза
   // увольнением поднимает сопротивление, а успех требует низкого.
   if (state.brokenOff) return "failed";
+  // Сопротивление на максимуме: договариваться уже не с кем. Собеседник
+  // произносит прощальную реплику и кладёт трубку, разговор проигран.
+  if (state.R >= 100) return "failed";
   if (state.highResistanceStreak >= 3) return "failed";
   if (state.turn >= scenario.turnLimit) return "timeout";
   return null;

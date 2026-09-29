@@ -136,7 +136,6 @@ export const CASES = {
   searchLabel: "Поиск",
   searchPlaceholder: "Название или тема разговора",
   filterDomain: "Сфера",
-  filterTone: "Характер",
   filterDifficulty: "Сложность",
   filterUnplayed: "Только непройденные",
   resetFilters: "Сбросить фильтры",
@@ -166,37 +165,6 @@ export const CASES = {
   openThisCase: "Открыть этот кейс",
   randomPick: "Мы подобрали разговор наугад.",
   refinePick: "Ответьте на три вопроса, чтобы подобрать точнее",
-};
-
-/**
- * Working out who you were talking to is one of the exercises, so the case
- * never names the type — the debrief asks for a guess and only then reveals it.
- */
-export const TYPE_GUESS = {
-  sectionTitle: "Тип личности",
-  question: "Кто это был?",
-  hint: "Типов всего три. Выберите тот, который, по вашему мнению, вам достался.",
-  submit: "Проверить",
-  options: [
-    { value: "aggressive", label: "Агрессивный" },
-    { value: "anxious", label: "Тревожный" },
-    { value: "rational", label: "Рациональный" },
-  ] as QuizOption<"aggressive" | "anxious" | "rational">[],
-  correct: "Верно, тип вы определили",
-  wrong: "Тип вы не определили",
-  yourAnswer: "Ваш ответ",
-  trueAnswer: "На самом деле",
-  markersTitle: "По каким признакам это было видно",
-  markers: {
-    aggressive:
-      "Повышает тон, перебивает, спорит с самой постановкой вопроса. Давит на вашу позицию, а не разбирает задачу.",
-    anxious:
-      "Говорит тихо, извиняется, не просит прямо — намекает и ждёт, что вы догадаетесь сами. Замолкает при любом нажиме.",
-    rational:
-      "Опирается на факты и цифры, торгуется, просит обоснование и сам предлагает компромиссные варианты.",
-  } as Record<"aggressive" | "anxious" | "rational", string>,
-  whyItMatters:
-    "От типа зависит, что снимает сопротивление: тревожному нужно признание, агрессивному — твёрдая рамка, рациональному — критерии.",
 };
 
 /** Админский контур. Тот же язык интерфейса, что и в пользовательском. */
@@ -262,6 +230,8 @@ export const ENDED = {
     rational: "Он сказал, что подумает, и вышел",
   },
   turnLimit: "Время разговора вышло",
+  /** Надпись над заголовком, когда собеседник оборвал разговор сам. */
+  lost: "Разговор проигран",
   subtitle: "Разбор всё равно готов — самое важное в нём",
   cta: "Посмотреть разбор",
 };
@@ -281,6 +251,8 @@ export const DEBRIEF = {
   timelineShowAll: "Показать все реплики",
   layersTitle: "Скрытые интересы",
   layerNotReached: "Вы до этого не дошли",
+  /** Заглушка вместо текста нераскрытого слоя: разгадку в разборе не выдаём. */
+  layerHidden: "Собеседник об этом так и не сказал. Вернитесь в этот разговор и доберитесь до причины сами.",
   layerReachedAt: (turn: number) => `Раскрыт на реплике ${turn}`,
   workedTitle: "Что сработало",
   killedTitle: "Что убило разговор",
@@ -291,7 +263,6 @@ export const DEBRIEF = {
   actionsAgain: "Пройти этот кейс ещё раз",
   actionsOtherType: "Тот же кейс, другой характер",
   actionsNext: "Следующий кейс",
-  guestTitle: "Сохранить результат и прогресс",
 };
 
 /** Action codes → the human wording the debrief timeline shows on badges. */

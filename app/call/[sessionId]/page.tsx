@@ -143,10 +143,10 @@ export default function CallPage() {
 
   // В тест-прогоне тот же экран, но с плашкой сверху и панелью отладки справа.
   const screen = (
-    <div className="grid h-full min-h-0 flex-1 grid-rows-[60px_minmax(0,1fr)] bg-surface text-primary">
-      <header className="flex items-center gap-5 border-b-[1.5px] border-border-strong px-6">
+    <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-surface text-primary">
+      <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b-[1.5px] border-border-strong px-6 py-2.5">
         <span className={`h-2 w-2 rounded-full ${ended ? "bg-disabled" : "rec-dot bg-accent-bg"}`} />
-        <div className="text-[19px]">{scenario.title}</div>
+        <h1 className="text-[19px] font-bold leading-tight">{scenario.title}</h1>
         <div className="flex-1" />
         <button
           onClick={() => setTrainingOverride(!trainingMode)}
@@ -169,7 +169,7 @@ export default function CallPage() {
       <div className="grid min-h-0 grid-cols-[320px_minmax(0,1fr)_340px]">
         {/* Left: case + transcript */}
         <aside className="flex min-h-0 flex-col border-r-[1.5px] border-border-strong">
-          <div className="flex flex-col gap-2 border-b-[1.5px] border-dashed border-border p-[18px]">
+          <div className="flex max-h-[45%] shrink-0 flex-col gap-2 overflow-y-auto border-b-[1.5px] border-dashed border-border p-[18px]">
             <div className="label-case text-[11px] text-secondary">Сценарий</div>
             <div className="text-base leading-snug">{scenario.context}</div>
             <div className="label-case mt-1.5 text-[11px] text-secondary">Ваша цель</div>
@@ -189,7 +189,7 @@ export default function CallPage() {
         </aside>
 
         {/* Center: call window + input */}
-        <main className="flex min-h-0 flex-col gap-4 p-5">
+        <main className="flex min-h-0 flex-col gap-4 overflow-hidden p-5">
           <CallStage
             name={persona.displayName}
             position={persona.position}
@@ -258,10 +258,15 @@ export default function CallPage() {
     </div>
   );
 
-  if (!isTestRun) return screen;
+  // Высота задаётся здесь, а не классом h-full внутри: у обёртки темы своей
+  // высоты нет, и h-full там разворачивался в auto, отчего экран рос вслед за
+  // транскриптом и поле ввода уходило под нижний край.
+  if (!isTestRun) {
+    return <div className="flex h-screen flex-col overflow-hidden">{screen}</div>;
+  }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <TestRunBanner />
       <div className="flex min-h-0 flex-1">
         {screen}

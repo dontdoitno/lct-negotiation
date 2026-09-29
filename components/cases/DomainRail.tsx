@@ -6,15 +6,8 @@ import { Button } from "@astryxdesign/core/Button";
 import { CaseBase } from "@/lib/flow/cases";
 import { CASES } from "@/lib/flow/copy";
 import { DIFFICULTY_PRESETS } from "@/lib/scenarios/presets";
-import { DifficultyPreset, Tone } from "@/lib/scenarios/types";
+import { DifficultyPreset } from "@/lib/scenarios/types";
 import { FilterState, EMPTY_FILTERS } from "./filters";
-
-const TONE_LABELS: Record<Tone, string> = {
-  aggressive: "Агрессивный",
-  anxious: "Тревожный",
-  rational: "Рациональный",
-  custom: "Свой характер",
-};
 
 /**
  * Левая колонка каталога. Сферы здесь главный способ навигации, поэтому они
@@ -38,13 +31,11 @@ export function DomainRail({
   onToggle: () => void;
 }) {
   const domains = [...new Set(cases.map((c) => c.domain))].sort();
-  const tones = [...new Set(cases.map((c) => c.tone))];
   const difficulties = (["easy", "normal", "hard"] as DifficultyPreset[]).filter((d) =>
     cases.some((c) => c.difficulty === d),
   );
 
-  const dirty =
-    value.query !== "" || value.tone !== null || value.difficulty !== null || value.onlyUnplayed;
+  const dirty = value.query !== "" || value.difficulty !== null || value.onlyUnplayed;
 
   function set<K extends keyof FilterState>(key: K, next: FilterState[K]) {
     onChange({ ...value, [key]: next });
@@ -110,12 +101,6 @@ export function DomainRail({
           size="sm"
         />
 
-        <FilterGroup
-          label={CASES.filterTone}
-          options={tones.map((t) => ({ value: t, label: TONE_LABELS[t] }))}
-          selected={value.tone}
-          onSelect={(v) => set("tone", v as Tone | null)}
-        />
         <FilterGroup
           label={CASES.filterDifficulty}
           options={difficulties.map((d) => ({ value: d, label: DIFFICULTY_PRESETS[d].label }))}

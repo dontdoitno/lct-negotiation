@@ -201,8 +201,6 @@ export async function loadDebrief(sessionId: string): Promise<DebriefData | null
     levelId: persona.id,
     scenarioId: scenario.id,
     scenarioTitle: scenario.title,
-    personaType: persona.type,
-    personaTypeLabel: persona.typeLabel,
     displayName: persona.displayName,
     endReason,
     outcome: computeOutcome(state, scenario),

@@ -2,7 +2,10 @@ import Link from "next/link";
 import { Text, Heading } from "@astryxdesign/core/Text";
 import { CaseTileData } from "@/lib/flow/types";
 import { CASES } from "@/lib/flow/copy";
+import { DifficultyPreset } from "@/lib/scenarios/types";
 import { MetricRadar } from "@/components/ui/MetricRadar";
+import { DIFFICULTY_PRESETS } from "@/lib/scenarios/presets";
+import { SEVERITY_CLASS, severityOfDifficulty } from "@/lib/flow/severity";
 
 /**
  * Карточка разговора. Четыре состояния, и у каждого своя работа.
@@ -25,6 +28,7 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             </Text>
             <LockIcon />
           </div>
+          <DifficultyChip difficulty={data.difficulty} muted />
           <span className="block text-[19px] text-disabled">{data.displayName}</span>
           <div className="mt-auto max-w-40">
             <Text type="supporting" color="disabled" display="block">
@@ -51,12 +55,10 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             <Text type="supporting" color="secondary">
               {CASES.callLabel(data.callNumber)}
             </Text>
-            {recommended ? (
+            {recommended && (
               <span className="shrink-0 rounded-full bg-inverted px-2.5 py-1 text-[12px] font-bold text-surface">
                 {CASES.recommendedBadge}
               </span>
-            ) : (
-              data.bestMetrics && <MetricRadar end={data.bestMetrics} size={44} />
             )}
           </div>
 
@@ -64,16 +66,27 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             {data.displayName}
           </Heading>
 
-          <Text type="supporting" color="secondary" display="block">
-            {recommended
-              ? CASES.recommendedNote
-              : data.attempts > 0
-                ? CASES.attempts(data.attempts)
-                : CASES.noAttempts}
-          </Text>
+          <div className="flex items-center justify-between gap-3">
+            <Text type="supporting" color="secondary">
+              {recommended
+                ? CASES.recommendedNote
+                : data.attempts > 0
+                  ? CASES.attempts(data.attempts)
+                  : CASES.noAttempts}
+            </Text>
+            {/* Радар пройденного кейса стоит здесь, а не в шапке: там он
+                конкурировал с номером созвона и обрезался до подписей осей. */}
+            {!recommended && data.bestMetrics && (
+              <MetricRadar end={data.bestMetrics} size={56} />
+            )}
+          </div>
+
+          <div className="mt-auto pt-2">
+            <DifficultyChip difficulty={data.difficulty} />
+          </div>
 
           {recommended && (
-            <div className="mt-auto flex items-center justify-between gap-3 rounded-xl bg-inverted px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-inverted px-4 py-3">
               <span className="text-[15px] font-bold text-surface">{CASES.startCall}</span>
               <ArrowRight />
             </div>
@@ -81,6 +94,23 @@ export function CaseTile({ data }: { data: CaseTileData }) {
         </article>
       </Link>
     </li>
+  );
+}
+
+/**
+ * Чип сложности. Цвет подсказывает, чего ждать, но сложность всегда написана
+ * словом — по одному цвету её различать не приходится.
+ */
+function DifficultyChip({ difficulty, muted }: { difficulty: DifficultyPreset; muted?: boolean }) {
+  const tone = SEVERITY_CLASS[severityOfDifficulty(difficulty)].chip;
+  return (
+    <span
+      className={`inline-block w-fit rounded-full border px-2 py-0.5 text-[12px] ${
+        muted ? "border-border text-disabled" : tone
+      }`}
+    >
+      {DIFFICULTY_PRESETS[difficulty].label}
+    </span>
   );
 }
 

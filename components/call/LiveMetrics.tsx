@@ -5,12 +5,18 @@ import { METRIC_META } from "@/lib/engine/labels";
 import { SessionState } from "@/lib/engine/types";
 import { Deltas } from "@/lib/call/reducer";
 import { formatDelta, isFavorable, isLowerBetter, METRIC_ORDER } from "@/lib/call/metricDirection";
+import { SEVERITY_CLASS, severityOfMetric } from "@/lib/flow/severity";
 
 const FLASH_MS = 3000;
 
 /**
  * All 6 metrics, always visible. Rows that moved on the latest turn are highlighted for 3s:
  * solid accent = moved toward the goal, dashed/striped = moved against it.
+ *
+ * Цвет шкалы показывает, где метрика стоит сейчас: зелёная в вашу пользу,
+ * жёлтая посередине, красная против вас. Те же три цвета носят чипы сложности
+ * на карточках кейсов. Само число написано рядом, поэтому по одному цвету
+ * ничего различать не требуется.
  */
 export function LiveMetrics({ state, deltas, deltaSeq, turn }: { state: SessionState; deltas: Deltas; deltaSeq: number; turn: number }) {
   const [flashing, setFlashing] = useState(false);
@@ -36,6 +42,7 @@ export function LiveMetrics({ state, deltas, deltaSeq, turn }: { state: SessionS
         const good = moved && isFavorable(m, d);
         const lit = flashing && moved;
         const lineStyle = good ? "border-solid" : "border-dashed";
+        const severity = SEVERITY_CLASS[severityOfMetric(m, value)];
 
         return (
           <div
@@ -50,7 +57,7 @@ export function LiveMetrics({ state, deltas, deltaSeq, turn }: { state: SessionS
                 {isLowerBetter(m) && <span className="ml-1 whitespace-nowrap text-[11px] text-disabled">↓ лучше</span>}
               </span>
               <span className="flex shrink-0 items-center gap-2.5">
-                <span className="font-mono text-[17px] tabular-nums text-primary">{value}</span>
+                <span className={`font-mono text-[17px] tabular-nums ${severity.text}`}>{value}</span>
                 <span
                   className={`whitespace-nowrap rounded border-[1.5px] px-1.5 font-mono text-[12px] tabular-nums ${moved ? `${lineStyle} border-accent text-accent` : "border-border text-disabled"}`}
                 >
@@ -60,14 +67,14 @@ export function LiveMetrics({ state, deltas, deltaSeq, turn }: { state: SessionS
             </div>
             <div className="h-2 overflow-hidden rounded border border-disabled bg-track">
               <div
-                className="h-full transition-[width] duration-500 ease-out"
+                className={`h-full transition-[width] duration-500 ease-out ${lit ? "" : severity.bar}`}
                 style={{
                   width: `${Math.max(2, Math.min(100, value))}%`,
                   background: lit
                     ? good
                       ? "var(--color-accent)"
                       : "repeating-linear-gradient(45deg, var(--color-accent) 0 4px, #fff 4px 8px)"
-                    : "#8a8a8a",
+                    : undefined,
                 }}
               />
             </div>

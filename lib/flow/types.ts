@@ -116,9 +116,6 @@ export interface DebriefData {
   levelId: string;
   scenarioId: string;
   scenarioTitle: string;
-  personaType: "rational" | "anxious" | "aggressive";
-  /** The reveal: shown only after the player has committed to a guess. */
-  personaTypeLabel: string;
   displayName: string;
   endReason: EndReason;
   outcome: {

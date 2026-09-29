@@ -119,6 +119,17 @@ describe("checkEnding", () => {
     expect(checkEnding(state, s1)).toBe("failed");
   });
 
+  it("объявляет проигрыш, как только сопротивление упирается в 100", () => {
+    // Ровно один ход на максимуме, серии из трёх ещё нет.
+    const state = { ...createInitialState(aggressivePersona), R: 100, highResistanceStreak: 1, turn: 4 };
+    expect(checkEnding(state, s1)).toBe("failed");
+  });
+
+  it("на 99 разговор ещё продолжается", () => {
+    const state = { ...createInitialState(aggressivePersona), R: 99, highResistanceStreak: 1, turn: 4 };
+    expect(checkEnding(state, s1)).toBeNull();
+  });
+
   it("declares timeout once the turn limit is reached", () => {
     const state = { ...createInitialState(rationalPersona), turn: 14 };
     expect(checkEnding(state, s1)).toBe("timeout");

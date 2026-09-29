@@ -13,9 +13,6 @@ import { MetricRadar } from "@/components/ui/MetricRadar";
 import { METRIC_META, bucketLabel } from "@/lib/engine/labels";
 import { METRIC_ORDER, formatDelta, isFavorable } from "@/lib/call/metricDirection";
 import { MetricCode } from "@/lib/engine/types";
-import { GuestSaveBlock } from "./GuestSaveBlock";
-import { TypeGuessBlock } from "./TypeGuessBlock";
-import { TYPE_GUESS } from "@/lib/flow/copy";
 
 /** Three-step verbal scale; `inverse` flips which end is the good one. */
 function band(value: number, inverse = false): { text: string; good: boolean } {
@@ -27,26 +24,17 @@ function band(value: number, inverse = false): { text: string; good: boolean } {
 }
 
 /**
- * The debrief page container is `wide` so the four outcome tiles fit in one
- * row and the radar can sit beside its metric list. Prose blocks would become
- * unreadable at that measure, so by default a section constrains its content
- * to `reading`; the two blocks that genuinely need the width opt out.
+ * Раздел разбора. Ширину не ограничиваем: разбор занимает весь экран, а за
+ * читаемость длинных текстов отвечают сами блоки — они раскладываются в
+ * колонки, когда места становится много.
  */
-function Section({
-  title,
-  children,
-  wide,
-}: {
-  title: string;
-  children: React.ReactNode;
-  wide?: boolean;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="border-t-[1.5px] border-border-strong py-7">
       <Text type="label" color="secondary" display="block">
         {title}
       </Text>
-      <div className={`mt-4 ${wide ? "" : "max-w-reading"}`}>{children}</div>
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -106,23 +94,14 @@ export function DebriefView({ data }: { data: DebriefData }) {
   }, [flow.quiz.outcome, data]);
 
   return (
-    <main className="mx-auto max-w-wide px-6 pb-16 pt-8">
+    <main className="w-full px-4 pb-16 pt-8 sm:px-6 lg:px-10">
       <Heading level={1} type="display-3">
         {data.scenarioTitle} · {data.displayName}
       </Heading>
 
-      {/* 0. Тип личности — спрашиваем до разбора: в самом разборе ответ виден */}
-      <Section title={TYPE_GUESS.sectionTitle} wide>
-        <TypeGuessBlock
-          sessionId={data.sessionId}
-          trueType={data.personaType}
-          trueTypeLabel={data.personaTypeLabel}
-        />
-      </Section>
-
       {/* 1. Итог */}
-      <Section title={DEBRIEF.outcomeTitle} wide>
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Section title={DEBRIEF.outcomeTitle}>
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {outcomeCards.map((c) => (
             <li key={c.label}>
               <Card>
@@ -147,7 +126,7 @@ export function DebriefView({ data }: { data: DebriefData }) {
       </Section>
 
       {/* 2. Метрики */}
-      <Section title={DEBRIEF.metricsTitle} wide>
+      <Section title={DEBRIEF.metricsTitle}>
         <div className="flex flex-col gap-6 md:flex-row md:items-center">
           <div className="shrink-0">
             <MetricRadar end={data.metricsEnd} start={data.metricsStart} size={220} />
@@ -205,7 +184,7 @@ export function DebriefView({ data }: { data: DebriefData }) {
               )}
               <div className={`flex ${t.speaker === "player" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[85%] rounded-lg border-[1.5px] px-3.5 py-2.5 ${
+                  className={`max-w-[85%] rounded-lg border-[1.5px] px-3.5 py-2.5 lg:max-w-reading ${
                     t.speaker === "player" ? "border-accent bg-body" : "border-border bg-surface"
                   }`}
                 >
@@ -270,7 +249,7 @@ export function DebriefView({ data }: { data: DebriefData }) {
 
       {/* 4. Скрытые интересы */}
       <Section title={DEBRIEF.layersTitle}>
-        <ol className="flex flex-col gap-2.5">
+        <ol className="grid grid-cols-1 gap-2.5 xl:grid-cols-2">
           {data.layers.map((l) => (
             <li
               key={l.layer}
@@ -282,10 +261,17 @@ export function DebriefView({ data }: { data: DebriefData }) {
                 Слой {l.layer} ·{" "}
                 {l.revealedAtTurn !== null ? DEBRIEF.layerReachedAt(l.revealedAtTurn) : DEBRIEF.layerNotReached}
               </Text>
-              {/* Unreached layers are shown in full on purpose — the insight
-                  lives in what the player never got to. */}
+              {/* Нераскрытый слой не показываем. Его текст — это ответ, за
+                  которым человек пойдёт в следующий заход, и напечатать его
+                  здесь значит отдать разгадку даром. */}
               <div className="mt-1.5">
-                <Text as="p" display="block">{l.text}</Text>
+                {l.revealedAtTurn !== null ? (
+                  <Text as="p" display="block">{l.text}</Text>
+                ) : (
+                  <Text as="p" display="block" color="disabled">
+                    {DEBRIEF.layerHidden}
+                  </Text>
+                )}
               </div>
             </li>
           ))}
@@ -333,7 +319,7 @@ export function DebriefView({ data }: { data: DebriefData }) {
       {/* 6. Переписанная реплика — целиком отсутствует, если переписывать нечего */}
       {data.rewrite && (
         <Section title={DEBRIEF.rewriteTitle}>
-          <div className="flex flex-col gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5 xl:grid-cols-3">
             <div className="rounded-lg border-[1.5px] border-border p-4">
               <Text type="label" color="secondary" display="block">{DEBRIEF.rewriteSaid}</Text>
               <div className="mt-1.5"><Text as="p" display="block">«{data.rewrite.said}»</Text></div>
@@ -353,16 +339,13 @@ export function DebriefView({ data }: { data: DebriefData }) {
       {/* 7. Персональная привязка */}
       {personalLine && (
         <section className="border-t-[1.5px] border-border-strong py-6">
-          <div className="max-w-reading"><Text as="p" display="block">{personalLine}</Text></div>
+          <Text as="p" display="block">{personalLine}</Text>
         </section>
       )}
 
-      {/* 9. Гостю — над действиями */}
-      {flow.guest && <GuestSaveBlock />}
-
       {/* 8. Действия */}
       <section className="border-t-[1.5px] border-border-strong pt-7">
-        <div className="flex max-w-reading flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link href={`/brief/${data.levelId}`}>
             <Button variant="primary" size="lg" label={DEBRIEF.actionsAgain} />
           </Link>

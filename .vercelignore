@@ -1,0 +1,25 @@
+# Что не нужно загружать на Vercel. Vercel не читает .gitignore,
+# поэтому окружение сборки документации приходится исключать отдельно:
+# в нём около 20 тысяч файлов, а лимит загрузки 15 тысяч.
+
+# Документация: собирается отдельно и публикуется на GitHub Pages
+.venv-docs
+site
+docs-site
+docs
+mkdocs.yml
+requirements-docs.txt
+docs_hooks.py
+
+# Разработка
+.github
+tests
+vitest.config.ts
+README.md
+AGENTS.md
+CLAUDE.md
+JUDGE_MODULE.md
+
+# Локальная база и артефакты
+prisma/*.db
+.next

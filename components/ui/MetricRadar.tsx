@@ -3,6 +3,9 @@ import { METRIC_ORDER } from "@/lib/call/metricDirection";
 
 const AXIS_LABEL: Record<MetricCode, string> = { A: "A", T: "T", R: "R", I: "I", S: "S", C: "C" };
 
+/** Ниже этого размера подписи осей нечитаемы и только съедают радиус. */
+const LABEL_MIN_SIZE = 120;
+
 function polygon(values: Partial<Record<MetricCode, number>>, cx: number, cy: number, r: number) {
   return METRIC_ORDER.map((m, i) => {
     // Start at 12 o'clock and go clockwise so the axis order reads naturally.
@@ -32,7 +35,11 @@ export function MetricRadar({
 }) {
   const cx = size / 2;
   const cy = size / 2;
-  const r = size / 2 - 22;
+  // Подписи осей занимают поле в 22 пикселя. На маленьком радаре это съедало
+  // весь радиус: при size 44 он выходил нулевым, и от диаграммы оставались одни
+  // буквы. Поэтому мелкий радар рисуем без подписей и почти без поля.
+  const withLabels = size >= LABEL_MIN_SIZE;
+  const r = size / 2 - (withLabels ? 22 : 3);
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-labelledby={labelledBy}>
@@ -51,7 +58,7 @@ export function MetricRadar({
         />
       ))}
 
-      {METRIC_ORDER.map((m, i) => {
+      {withLabels && METRIC_ORDER.map((m, i) => {
         const angle = (Math.PI * 2 * i) / METRIC_ORDER.length - Math.PI / 2;
         const lx = cx + Math.cos(angle) * (r + 13);
         const ly = cy + Math.sin(angle) * (r + 13);

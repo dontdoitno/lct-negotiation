@@ -38,8 +38,18 @@ export default function SignupPage() {
     }
   }
 
-  function guest() {
+  // Гость — это именно «не вошёл». Если в браузере осталась сессия с прошлого
+  // входа, её надо погасить на сервере: иначе человек считает себя гостем, а
+  // страницы по-прежнему отдаются ему с правами того аккаунта.
+  async function guest() {
     continueAsGuest();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Сеть отвалилась: дальше пускаем всё равно, гостевой режим не должен
+      // упираться в неудачный запрос.
+    }
+    router.refresh();
     router.push("/rules");
   }
 
