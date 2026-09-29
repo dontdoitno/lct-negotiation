@@ -60,7 +60,7 @@ export function CallPreview() {
             <div className="flex min-w-0 flex-1 flex-col">
               <CallStage
                 name="Артём"
-                position="Senior-разработчик"
+                // position="Senior-разработчик"
                 status="speaking"
                 reply="Я хочу перенос дедлайна и повышение зарплаты!"
                 replyStreaming={false}

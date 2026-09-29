@@ -6,14 +6,14 @@ export type StageStatus = "speaking" | "listening" | "thinking";
 
 export function CallStage({
   name,
-  position,
+  // position,
   status,
   reply,
   replyStreaming,
   replyMode,
 }: {
   name: string;
-  position: string;
+  // position: string;
   status: StageStatus;
   reply: string | null;
   replyStreaming: boolean;
@@ -49,7 +49,7 @@ export function CallStage({
 
       <div className="absolute right-3.5 top-3.5 rounded-md border-[1.5px] border-border-strong bg-surface px-3 py-1.5 text-right">
         <h2 className="text-[17px] font-bold leading-tight text-primary">{name}</h2>
-        <div className="text-[13px] text-secondary">{position}</div>
+        {/* <div className="text-[13px] text-secondary">{position}</div> */}
       </div>
 
       <NpcReplyCard name={name} text={reply} thinking={status === "thinking"} streaming={replyStreaming} mode={replyMode} />
