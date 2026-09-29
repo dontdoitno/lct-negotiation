@@ -62,7 +62,7 @@ export function CallPreview() {
                 name="Артём"
                 position="Senior-разработчик"
                 status="speaking"
-                reply="Мне не нужны успокоения. Мне нужно решение."
+                reply="Я хочу перенос дедлайна и повышение зарплаты!"
                 replyStreaming={false}
                 replyMode="card"
               />

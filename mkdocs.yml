@@ -85,6 +85,13 @@ nav:
       - Стек и библиотеки: tech/stack.md
       - Внешние сервисы и ключи: tech/services.md
       - Тесты: tech/testing.md
+  - 5. Админка:
+      - Контур администратора: admin/overview.md
+      - Список сценариев: admin/scenarios.md
+      - Конструктор: admin/constructor.md
+      - Генерация черновика: admin/generation.md
+      - Тест-прогон: admin/test-run.md
+      - Аналитика: admin/analytics.md
   - Справочник:
       - Карта экранов и API: reference/routes.md
       - Метрики и действия: reference/metrics.md

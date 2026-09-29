@@ -11,8 +11,9 @@ import { CaseTileData } from "@/lib/flow/types";
 import { ADMIN, CASES } from "@/lib/flow/copy";
 import { matchLevelFromQuiz, suggestNextStep } from "@/lib/flow/matching";
 import { useFlowState } from "@/lib/flow/store";
-import { CaseTile } from "./CaseTile";
-import { CatalogFilters, FilterState, EMPTY_FILTERS } from "./CatalogFilters";
+import { DomainRail } from "./DomainRail";
+import { TopicRow } from "./TopicRow";
+import { FilterState, EMPTY_FILTERS } from "./filters";
 import { MetricRadar } from "@/components/ui/MetricRadar";
 import { MetricCode } from "@/lib/engine/types";
 
@@ -31,6 +32,7 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
   const flow = useFlowState();
   const router = useRouter();
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [railCollapsed, setRailCollapsed] = useState(false);
 
   const finished = useMemo(() => cases.filter((c) => c.attempts > 0), [cases]);
   const hasProgress = finished.length > 0;
@@ -79,21 +81,15 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
     });
   }, [tiles, filters]);
 
-  /** Сфера, внутри неё тема: группа с одной темой и разными тонами и есть
-      та самая матрица «ситуация × характер». */
-  const groups = useMemo(() => {
-    const byDomain = new Map<string, Map<string, CaseTileData[]>>();
+  /** Группы по теме. Тема с разными характерами и есть матрица «ситуация × характер». */
+  const topics = useMemo(() => {
+    const map = new Map<string, CaseTileData[]>();
     for (const t of visible) {
-      const topics = byDomain.get(t.domain) ?? new Map<string, CaseTileData[]>();
-      const list = topics.get(t.topic) ?? [];
+      const list = map.get(t.topic) ?? [];
       list.push(t);
-      topics.set(t.topic, list);
-      byDomain.set(t.domain, topics);
+      map.set(t.topic, list);
     }
-    return [...byDomain.entries()].map(([domain, topics]) => ({
-      domain,
-      topics: [...topics.entries()].map(([topic, items]) => ({ topic, items })),
-    }));
+    return [...map.entries()].map(([topic, items]) => ({ topic, items }));
   }, [visible]);
 
   const accumulated = useMemo(() => {
@@ -140,98 +136,98 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
   }
 
   return (
-    <main className="mx-auto max-w-wide px-6 py-10">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Heading level={1} type="display-3">
-          {hasProgress ? CASES.progressTitle : CASES.firstTitle}
-        </Heading>
-        {/* Пункт админки виден только администратору: обычный пользователь не
-            должен догадываться, что она существует. */}
-        {isAdmin && (
-          <Link href="/admin">
-            <Button variant="secondary" label={ADMIN.sectionTitle} />
-          </Link>
-        )}
-      </div>
+    <div className="flex min-h-screen bg-body">
+      <DomainRail
+        cases={cases}
+        value={filters}
+        onChange={setFilters}
+        collapsed={railCollapsed}
+        onToggle={() => setRailCollapsed((v) => !v)}
+      />
 
-      {hasProgress && accumulated && (
-        <div className="mt-6">
-          <Card>
-            <div className="flex flex-col gap-6 md:flex-row md:items-center">
-              <MetricRadar end={accumulated} size={180} />
-              {suggestion && (
-                <div className="min-w-0">
-                  <Text type="label" color="secondary" display="block">
-                    {CASES.nextStepTitle}
-                  </Text>
-                  <div className="mt-2">
-                    <Text as="p" display="block" type="large">
-                      {suggestion.text}
-                    </Text>
-                  </div>
-                  <div className="mt-4">
-                    <Link href={`/brief/${suggestion.levelId}`}>
-                      <Button variant="secondary" label="Открыть этот кейс" />
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Фильтры нужны только когда есть из чего выбирать. */}
-      {hasProgress && cases.length > 3 && (
-        <div className="mt-7">
-          <CatalogFilters cases={cases} value={filters} onChange={setFilters} />
-        </div>
-      )}
-
-      {visible.length === 0 ? (
-        <div className="mt-10">
-          <Text as="p" display="block" color="secondary">
-            {CASES.nothingFound}
-          </Text>
-          <div className="mt-3">
-            <Button variant="ghost" size="sm" label={CASES.resetFilters} onClick={() => setFilters(EMPTY_FILTERS)} />
-          </div>
-        </div>
-      ) : (
-        <div className="mt-8 flex flex-col gap-10">
-          {groups.map((group) => (
-            <section key={group.domain}>
-              <Heading level={2}>{group.domain}</Heading>
-              <div className="mt-4 flex flex-col gap-6">
-                {group.topics.map((t) => (
-                  <section key={t.topic}>
-                    <Text type="label" color="secondary" display="block">
-                      {t.topic}
-                    </Text>
-                    <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {t.items.map((tile) => (
-                        <CaseTile key={tile.levelId} data={tile} />
-                      ))}
-                    </ul>
-                  </section>
-                ))}
+      {/* Своя область прокрутки, чтобы колонка со сферами оставалась на месте. */}
+      <main className="h-screen flex-1 overflow-y-auto scroll-smooth px-10 py-8">
+        <div className="mx-auto flex max-w-wide flex-col gap-8">
+          <header className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <Text type="supporting" color="secondary" display="block">
+                {filters.domain ?? CASES.allDomains}
+              </Text>
+              <div className="mt-1">
+                <Heading level={1} type="display-2">
+                  {hasProgress ? CASES.progressTitle : CASES.firstTitle}
+                </Heading>
               </div>
-            </section>
-          ))}
-        </div>
-      )}
+            </div>
+            {/* Пункт админки виден только администратору: обычный пользователь
+                не должен догадываться, что она существует. */}
+            {isAdmin && (
+              <Link href="/admin">
+                <Button variant="secondary" label={ADMIN.sectionTitle} />
+              </Link>
+            )}
+          </header>
 
-      {!hasProgress && !flow.quizCompleted && (
-        <div className="mt-8 flex flex-wrap items-center gap-2">
-          <Text color="secondary">Мы подобрали разговор наугад.</Text>
-          <Button
-            variant="ghost"
-            size="sm"
-            label="Ответьте на три вопроса, чтобы подобрать точнее"
-            onClick={() => router.push("/quiz")}
-          />
+          {hasProgress && accumulated && (
+            <Card>
+              <div className="flex flex-col gap-6 md:flex-row md:items-center">
+                <MetricRadar end={accumulated} size={180} />
+                {suggestion && (
+                  <div className="min-w-0">
+                    <Text type="label" color="secondary" display="block">
+                      {CASES.nextStepTitle}
+                    </Text>
+                    <div className="mt-2">
+                      <Text as="p" display="block" type="large">
+                        {suggestion.text}
+                      </Text>
+                    </div>
+                    <div className="mt-4">
+                      <Link href={`/brief/${suggestion.levelId}`}>
+                        <Button variant="secondary" label={CASES.openThisCase} />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {topics.length === 0 ? (
+            <div className="py-10">
+              <Text as="p" display="block" color="secondary">
+                {CASES.nothingFound}
+              </Text>
+              <div className="mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  label={CASES.resetFilters}
+                  onClick={() => setFilters(EMPTY_FILTERS)}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-10">
+              {topics.map((group) => (
+                <TopicRow key={group.topic} topic={group.topic} items={group.items} />
+              ))}
+            </div>
+          )}
+
+          {!hasProgress && !flow.quizCompleted && (
+            <div className="flex flex-wrap items-center gap-2 pb-6">
+              <Text color="secondary">{CASES.randomPick}</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                label={CASES.refinePick}
+                onClick={() => router.push("/quiz")}
+              />
+            </div>
+          )}
         </div>
-      )}
-    </main>
+      </main>
+    </div>
   );
 }
