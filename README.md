@@ -5,7 +5,12 @@
 Тренажёр сложных разговоров руководителя с сотрудником. Интерфейс — окно видеозвонка
 с ИИ-сотрудником; справа — панель состояния собеседника и целей разговора.
 
+**Прототип:** https://lct-negotiation-ovlrlpfvk-dontdoitnos-projects.vercel.app
+
 **Документация:** https://dontdoitno.github.io/lct-negotiation/
+
+**Презентация и доп. материалы:** https://drive.google.com/drive/u/0/folders/1J4W8RjwVJ9dysC6eWDwdsIhyJ-XK-FSx
+
 В этом README.md собраны краткие сведения по решению задачи от команды "Муси". Подробная документация доступка на ссылке выше.
 
 **Целевая аудитория:** руководители линейного и среднего звена (от тимлида до начальника отдела).
@@ -128,10 +133,6 @@ npm run dev
 уже связан с Vercel: `vercel env pull .env.local --yes`.
 
 Для демонстрации лучше рабочая сборка: `npm run build && npm start`.
-
-**Публичный деплой:** пошагово в [docs-site/run/deploy.md](docs-site/run/deploy.md).
-В репозитории уже настроены схема под PostgreSQL, трассировка файлов контента,
-генерация клиента Prisma при сборке и регион Франкфурт.
 
 > **Если при старте падает `Cannot find module '../lightningcss.darwin-*.node'`**
 >
