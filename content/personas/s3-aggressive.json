@@ -105,6 +105,14 @@
     },
     "postpone_repeat": {
       "R": 25
+    },
+    "raise_voice": {
+      "R": 30,
+      "T": -25
+    },
+    "threat_of_firing": {
+      "R": 30,
+      "T": -25
     }
   },
   "adaptiveActions": [
@@ -114,7 +122,9 @@
   ],
   "maladaptiveActions": [
     "softness_no_substance",
-    "apology"
+    "apology",
+    "raise_voice",
+    "threat_of_firing"
   ],
   "openingLine": "Добрый день. Я так понимаю, меня вызвали, чтобы сказать, что результаты упали и я не справляюсь? Последний месяц у меня и правда стало хуже — сдаю позже, пропускаю встречи. Но, может, для начала разберёмся, почему, а не сразу будем искать виноватого.",
   "behaviorRules": [

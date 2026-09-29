@@ -3,6 +3,7 @@ import {
   Bucket,
   CBucket,
   CONSTRUCTIVE_ACTIONS,
+  CONVERSATION_BREAKERS,
   IBucket,
   MetricCode,
   Persona,
@@ -22,8 +23,15 @@ export function createInitialState(persona: Persona): SessionState {
     constructiveStreak: 0,
     highResistanceStreak: 0,
     postponeCount: 0,
+    brokenOff: false,
   };
 }
+
+/**
+ * Порог, с которого угроза увольнением обрывает разговор. Ниже него сотрудник
+ * остаётся в разговоре, и угроза работает просто как дорогой ход.
+ */
+const BREAK_OFF_RESISTANCE = 85;
 
 const POSTPONE_ACTIONS: ActionCode[] = ["postpone_with_deadline", "postpone_no_deadline"];
 
@@ -76,6 +84,13 @@ export function applyTurn(state: SessionState, actions: ActionCode[], persona: P
     }
 
     next.constructiveStreak = CONSTRUCTIVE_ACTIONS.includes(action) ? next.constructiveStreak + 1 : 0;
+
+    // Угроза увольнением обрывает разговор, если сотрудник к этому моменту уже
+    // на максимальном сопротивлении. Проверяем после применения дельт: сама
+    // угроза сопротивление и поднимает.
+    if (CONVERSATION_BREAKERS.includes(action) && next.R >= BREAK_OFF_RESISTANCE) {
+      next.brokenOff = true;
+    }
   }
 
   // Progress metrics never regress within a session — once surfaced, never
@@ -97,7 +112,8 @@ function revealInterestIfReady(
   state: SessionState,
   persona: Persona,
 ): { layer: number; text: string } | null {
-  if (state.constructiveStreak < 2) return null;
+  const revealCost = persona.layerRevealCost ?? 2;
+  if (state.constructiveStreak < revealCost) return null;
 
   const nextLayerIndex = state.revealedLayers.length; // 0-based index of the next layer to reveal
   const layer = persona.hiddenInterests[nextLayerIndex];

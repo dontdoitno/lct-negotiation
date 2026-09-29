@@ -27,8 +27,20 @@ export default function LoginPage() {
     setSubmitting(true);
     setServerError(null);
     try {
-      await new Promise((r) => setTimeout(r, 400));
-      router.push("/cases");
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        setServerError(LOGIN.errors.server);
+        setSubmitting(false);
+        return;
+      }
+      const data = (await res.json()) as { role: string };
+      // Администратора ведём сразу в его контур: за входом он приходит ради него.
+      router.push(data.role === "admin" ? "/admin" : "/cases");
+      router.refresh();
     } catch {
       setServerError(LOGIN.errors.server);
       setSubmitting(false);

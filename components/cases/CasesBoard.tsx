@@ -1,30 +1,36 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CaseBase } from "@/lib/flow/cases";
-import { CaseTileData } from "@/lib/flow/types";
-import { CASES } from "@/lib/flow/copy";
-import { matchLevelFromQuiz, suggestNextStep } from "@/lib/flow/matching";
-import { useFlowState } from "@/lib/flow/store";
 import Link from "next/link";
 import { Text, Heading } from "@astryxdesign/core/Text";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
+import { CaseBase } from "@/lib/flow/cases";
+import { CaseTileData } from "@/lib/flow/types";
+import { ADMIN, CASES } from "@/lib/flow/copy";
+import { matchLevelFromQuiz, suggestNextStep } from "@/lib/flow/matching";
+import { useFlowState } from "@/lib/flow/store";
 import { CaseTile } from "./CaseTile";
+import { CatalogFilters, FilterState, EMPTY_FILTERS } from "./CatalogFilters";
 import { MetricRadar } from "@/components/ui/MetricRadar";
 import { MetricCode } from "@/lib/engine/types";
 
 const METRICS: MetricCode[] = ["A", "T", "R", "I", "S", "C"];
 
 /**
- * One screen, two states: a first visit shows exactly one unlocked case (the
- * one the quiz picked), everything else locked; once anything is finished the
- * whole board opens and a summary with a next-step suggestion appears above it.
+ * Каталог разговоров. Сценарии приходят из базы, их число заранее неизвестно,
+ * поэтому вместо фиксированной сетки — группировка по сфере и теме плюс
+ * фильтры и поиск сверху.
+ *
+ * Первый заход выглядит иначе: открыт ровно один подобранный по опросу
+ * разговор, остальные закрыты. После первого пройденного доска открывается
+ * целиком, а над ней появляется сводка и подсказка, что взять дальше.
  */
-export function CasesBoard({ cases }: { cases: CaseBase[] }) {
+export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boolean }) {
   const flow = useFlowState();
   const router = useRouter();
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
 
   const finished = useMemo(() => cases.filter((c) => c.attempts > 0), [cases]);
   const hasProgress = finished.length > 0;
@@ -39,8 +45,11 @@ export function CasesBoard({ cases }: { cases: CaseBase[] }) {
       cases.map((c) => ({
         levelId: c.levelId,
         callNumber: c.callNumber,
-        scenarioId: c.scenarioId,
-        scenarioTitle: c.scenarioTitle,
+        title: c.title,
+        domain: c.domain,
+        topic: c.topic,
+        tone: c.tone,
+        difficulty: c.difficulty,
         personaType: c.personaType,
         displayName: c.displayName,
         attempts: c.attempts,
@@ -56,6 +65,37 @@ export function CasesBoard({ cases }: { cases: CaseBase[] }) {
     [cases, hasProgress, recommendedId],
   );
 
+  const visible = useMemo(() => {
+    const query = filters.query.trim().toLowerCase();
+    return tiles.filter((t) => {
+      if (filters.domain && t.domain !== filters.domain) return false;
+      if (filters.tone && t.tone !== filters.tone) return false;
+      if (filters.difficulty && t.difficulty !== filters.difficulty) return false;
+      if (filters.onlyUnplayed && t.attempts > 0) return false;
+      if (query && !t.title.toLowerCase().includes(query) && !t.topic.toLowerCase().includes(query)) {
+        return false;
+      }
+      return true;
+    });
+  }, [tiles, filters]);
+
+  /** Сфера, внутри неё тема: группа с одной темой и разными тонами и есть
+      та самая матрица «ситуация × характер». */
+  const groups = useMemo(() => {
+    const byDomain = new Map<string, Map<string, CaseTileData[]>>();
+    for (const t of visible) {
+      const topics = byDomain.get(t.domain) ?? new Map<string, CaseTileData[]>();
+      const list = topics.get(t.topic) ?? [];
+      list.push(t);
+      topics.set(t.topic, list);
+      byDomain.set(t.domain, topics);
+    }
+    return [...byDomain.entries()].map(([domain, topics]) => ({
+      domain,
+      topics: [...topics.entries()].map(([topic, items]) => ({ topic, items })),
+    }));
+  }, [visible]);
+
   const accumulated = useMemo(() => {
     if (!hasProgress) return null;
     const acc: Partial<Record<MetricCode, number>> = {};
@@ -70,28 +110,49 @@ export function CasesBoard({ cases }: { cases: CaseBase[] }) {
     () =>
       suggestNextStep(
         finished.map((c) => ({ levelId: c.levelId, metrics: c.bestMetrics ?? {} })),
-        cases.map((c) => ({ levelId: c.levelId, personaType: c.personaType, scenarioTitle: c.scenarioTitle })),
+        cases.map((c) => ({ levelId: c.levelId, personaType: c.personaType, scenarioTitle: c.topic })),
       ),
     [finished, cases],
   );
 
-  // Group by scenario so the <900px layout can show real section headings
-  // instead of a flat list.
-  const byScenario = useMemo(() => {
-    const map = new Map<string, { title: string; tiles: CaseTileData[] }>();
-    for (const t of tiles) {
-      const g = map.get(t.scenarioId) ?? { title: t.scenarioTitle, tiles: [] };
-      g.tiles.push(t);
-      map.set(t.scenarioId, g);
-    }
-    return [...map.values()];
-  }, [tiles]);
+  // Ни одного опубликованного сценария: пользователю сообщаем факт,
+  // администратору — куда идти.
+  if (cases.length === 0) {
+    return (
+      <main className="mx-auto max-w-reading px-6 py-16">
+        <Heading level={1} type="display-3">
+          {CASES.emptyTitle}
+        </Heading>
+        <div className="mt-3">
+          <Text as="p" display="block" color="secondary">
+            {isAdmin ? CASES.emptyAdminHint : CASES.emptyUserHint}
+          </Text>
+        </div>
+        {isAdmin && (
+          <div className="mt-6">
+            <Link href="/admin/scenarios/new">
+              <Button variant="primary" size="lg" label={CASES.emptyAdminCta} />
+            </Link>
+          </div>
+        )}
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-wide px-6 py-10">
-      <Heading level={1} type="display-3">
-        {hasProgress ? CASES.progressTitle : CASES.firstTitle}
-      </Heading>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Heading level={1} type="display-3">
+          {hasProgress ? CASES.progressTitle : CASES.firstTitle}
+        </Heading>
+        {/* Пункт админки виден только администратору: обычный пользователь не
+            должен догадываться, что она существует. */}
+        {isAdmin && (
+          <Link href="/admin">
+            <Button variant="secondary" label={ADMIN.sectionTitle} />
+          </Link>
+        )}
+      </div>
 
       {hasProgress && accumulated && (
         <div className="mt-6">
@@ -120,20 +181,45 @@ export function CasesBoard({ cases }: { cases: CaseBase[] }) {
         </div>
       )}
 
-      <div className="mt-8 flex flex-col gap-8">
-        {byScenario.map((group) => (
-          <section key={group.title}>
-            <Text type="label" color="secondary" display="block">
-              {group.title}
-            </Text>
-            <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {group.tiles.map((t) => (
-                <CaseTile key={t.levelId} data={t} />
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+      {/* Фильтры нужны только когда есть из чего выбирать. */}
+      {hasProgress && cases.length > 3 && (
+        <div className="mt-7">
+          <CatalogFilters cases={cases} value={filters} onChange={setFilters} />
+        </div>
+      )}
+
+      {visible.length === 0 ? (
+        <div className="mt-10">
+          <Text as="p" display="block" color="secondary">
+            {CASES.nothingFound}
+          </Text>
+          <div className="mt-3">
+            <Button variant="ghost" size="sm" label={CASES.resetFilters} onClick={() => setFilters(EMPTY_FILTERS)} />
+          </div>
+        </div>
+      ) : (
+        <div className="mt-8 flex flex-col gap-10">
+          {groups.map((group) => (
+            <section key={group.domain}>
+              <Heading level={2}>{group.domain}</Heading>
+              <div className="mt-4 flex flex-col gap-6">
+                {group.topics.map((t) => (
+                  <section key={t.topic}>
+                    <Text type="label" color="secondary" display="block">
+                      {t.topic}
+                    </Text>
+                    <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {t.items.map((tile) => (
+                        <CaseTile key={tile.levelId} data={tile} />
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
 
       {!hasProgress && !flow.quizCompleted && (
         <div className="mt-8 flex flex-wrap items-center gap-2">

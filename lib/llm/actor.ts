@@ -60,9 +60,16 @@ export function buildActorSystemPrompt(ctx: ActorTurnContext): Message[] {
 ПРАВИЛА ПОВЕДЕНИЯ:
 ${persona.behaviorRules.map((r) => `- ${r}`).join("\n")}
 ${resourcesBlock}
-Только реплика персонажа, 3–5 предложений, живой разговорный русский от первого лица. Естественная человеческая манера — избегай шаблонного «ИИ-тона», канцеляризмов и клише, чередуй короткие и длинные предложения. Не повторяй то, что уже говорил(а) — ссылайся на слова руководителя или добавляй новое. Реагируй на конкретные слова руководителя, а не общими фразами. Каждая реплика содержит одну зацепку: эмоцию, факт, требование или вопрос. Без пояснений, без метрик, без выхода из роли.`;
+Только реплика персонажа, 3–5 предложений, живой разговорный русский от первого лица. К руководителю обращайся на «вы». Естественная человеческая манера — избегай шаблонного «ИИ-тона», канцеляризмов и клише, чередуй короткие и длинные предложения. Не повторяй то, что уже говорил(а) — ссылайся на слова руководителя или добавляй новое. Реагируй на конкретные слова руководителя, а не общими фразами. Каждая реплика содержит одну зацепку: эмоцию, факт, требование или вопрос. Без пояснений, без метрик, без выхода из роли.`;
 
-  const state_block = `ТВОЁ ТЕКУЩЕЕ СОСТОЯНИЕ:
+  // Разговор по инициативе руководителя: своей вступительной реплики у
+  // сотрудника не было, поэтому контекст он вводит в первом же ответе —
+  // этого требует первое правило поведения у всех персонажей.
+  const isFirstNpcReply = !ctx.history.some((h) => h.speaker === "npc");
+  const openingBlock =
+    isFirstNpcReply && scenario.initiator === "manager" ? `${openingInstruction(persona)}\n\n` : "";
+
+  const state_block = `${openingBlock}ТВОЁ ТЕКУЩЕЕ СОСТОЯНИЕ:
 Сопротивление: ${rBucket}
 Открытость: ${tBucket}
 Уже раскрыто собеседнику: ${revealedList}
@@ -87,6 +94,47 @@ ${persona.linesByResistance[rBucket as "high" | "medium" | "low"].join(" / ")}`;
     { role: "system", content: system },
     { role: "user", content: state_block },
   ];
+}
+
+/**
+ * Инструкция для первой реплики. Текст из конструктора здесь ориентир по
+ * смыслу, а не готовая фраза: администратор пишет «оправдывается за прогулы»,
+ * и произнести это дословно персонаж не может.
+ */
+export function openingInstruction(persona: Persona): string {
+  return `ЭТО ТВОЯ ПЕРВАЯ РЕПЛИКА. Поздоровайся на «вы» и введи собеседника в контекст: кто ты, в какой ты ситуации и чего хочешь. Закончи так, как предписывает твоё первое правило поведения.
+О ЧЁМ ОНА ДОЛЖНА БЫТЬ (ориентир по смыслу, не цитата — перескажи своими словами, живой речью): "${persona.openingLine}"`;
+}
+
+/**
+ * Первая реплика, сгенерированная моделью по ориентиру из конструктора.
+ * Без модели возвращается сам ориентир: офлайн-режим должен оставаться
+ * играбельным, пусть и с дословным текстом.
+ */
+export async function generateOpeningLine(persona: Persona, scenario: Scenario): Promise<string> {
+  if (isMockMode()) return persona.openingLine;
+
+  const messages = buildActorSystemPrompt({
+    persona,
+    scenario,
+    state: { ...persona.initialState, turn: 0, revealedLayers: [], constructiveStreak: 0, highResistanceStreak: 0, postponeCount: 0 },
+    resistanceDelta: 0,
+    revealed: null,
+    ending: null,
+    actionsHuman: "разговор только начинается",
+    history: [],
+    turnIndex: 0,
+  });
+  messages[messages.length - 1].content = `${openingInstruction(persona)}\n\n${messages[messages.length - 1].content}`;
+
+  try {
+    const text = await getLLMProvider().complete(messages, { temperature: 0.8, maxTokens: 220 });
+    const trimmed = text.trim();
+    return trimmed.length > 0 && isValidReply(trimmed) ? trimmed : persona.openingLine;
+  } catch (error) {
+    console.error("[actor] не удалось сгенерировать первую реплику, берём ориентир дословно:", error);
+    return persona.openingLine;
+  }
 }
 
 const BANNED_PHRASES = ["как языковая модель", "как ии", "как искусственный интеллект"];
@@ -131,10 +179,14 @@ export async function* streamActorReply(ctx: ActorTurnContext): AsyncGenerator<s
 }
 
 function mockActorLine(ctx: ActorTurnContext): string {
-  const { persona, state, ending } = ctx;
+  const { persona, scenario, state, ending } = ctx;
 
-  if (ctx.turnIndex === 0 && ctx.history.length === 0) return persona.openingLine;
   if (ending === "failed") return persona.exitLine;
+  // Когда разговор начинает руководитель, вступительная реплика сотрудника
+  // ещё не звучала — отдаём её первым же ответом, как требует спецификация.
+  const isFirstNpcReply = !ctx.history.some((h) => h.speaker === "npc");
+  if (isFirstNpcReply && scenario.initiator === "manager") return persona.openingLine;
+  if (ctx.turnIndex === 0 && ctx.history.length === 0) return persona.openingLine;
 
   const avoid = lastNpcLine(ctx.history);
   // Seed on turn index plus the live metrics so the pick moves even across

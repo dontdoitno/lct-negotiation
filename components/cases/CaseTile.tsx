@@ -26,8 +26,8 @@ export function CaseTile({ data }: { data: CaseTileData }) {
               {CASES.callLabel(data.callNumber)}
             </Text>
             <div className="mt-1">
-              <Heading level={3} maxLines={1}>
-                {data.scenarioTitle}
+              <Heading level={3} maxLines={2}>
+                {data.title}
               </Heading>
             </div>
           </div>

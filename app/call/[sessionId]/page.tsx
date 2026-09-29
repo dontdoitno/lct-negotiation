@@ -14,6 +14,7 @@ import { LiveMetrics } from "@/components/call/LiveMetrics";
 import { TurnFeedbackCard } from "@/components/call/TurnFeedbackCard";
 import { ScorePopupStack } from "@/components/call/ScorePopup";
 import { HINTS_CUTOFF_TURN, OPENING_SUGGESTION_CHIPS, resistanceDeltaHint, TURN_HINTS } from "@/lib/content/onboardingHints";
+import { TestRunBanner, TestRunPanel } from "@/components/admin/TestRunPanel";
 
 export default function CallPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -24,6 +25,8 @@ export default function CallPage() {
   const [trainingOverride, setTrainingOverride] = useState<boolean | null>(null);
   const [inputMode, setInputMode] = useState<InputMode>("voice");
   const [hintOpen, setHintOpen] = useState(false);
+  // Тест-прогон из админки: та же механика, сверху плашка, справа отладка.
+  const [isTestRun, setIsTestRun] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -36,6 +39,7 @@ export default function CallPage() {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
+        setIsTestRun(data.isTestRun === true);
         const transcript: TranscriptItem[] = [];
         if (data.openingLine && data.turns.length === 0) {
           transcript.push({ id: "opening", speaker: "npc", text: data.openingLine });
@@ -76,7 +80,7 @@ export default function CallPage() {
           const data = JSON.parse(e.data);
           switch (e.event) {
             case "analysis":
-              dispatch({ type: "ANALYSIS", payload: { rationale: data.rationale, deltas: data.deltas } });
+              dispatch({ type: "ANALYSIS", payload: { rationale: data.rationale, deltas: data.deltas, actions: data.actions } });
               break;
             case "state":
               dispatch({ type: "STATE", payload: data });
@@ -137,8 +141,9 @@ export default function CallPage() {
     if (ended || window.confirm("Завершить разговор и перейти к разбору?")) router.push(endedHref);
   }
 
-  return (
-    <div className="grid h-screen grid-rows-[60px_minmax(0,1fr)] bg-surface text-primary">
+  // В тест-прогоне тот же экран, но с плашкой сверху и панелью отладки справа.
+  const screen = (
+    <div className="grid h-full min-h-0 flex-1 grid-rows-[60px_minmax(0,1fr)] bg-surface text-primary">
       <header className="flex items-center gap-5 border-b-[1.5px] border-border-strong px-6">
         <span className={`h-2 w-2 rounded-full ${ended ? "bg-disabled" : "rec-dot bg-accent-bg"}`} />
         <div className="text-[19px]">{scenario.title}</div>
@@ -249,6 +254,18 @@ export default function CallPage() {
           <TurnFeedbackCard item={lastPlayer} pending={s.sending && !lastPlayer?.rationale} />
           <LiveMetrics state={s.state} deltas={s.deltas} deltaSeq={s.deltaSeq} turn={s.turn} />
         </aside>
+      </div>
+    </div>
+  );
+
+  if (!isTestRun) return screen;
+
+  return (
+    <div className="flex h-screen flex-col">
+      <TestRunBanner />
+      <div className="flex min-h-0 flex-1">
+        {screen}
+        <TestRunPanel scenarioId={persona.id} state={s} />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getPersona, getScenario } from "@/lib/content/loader";
+import { getPersonaById, getScenarioById } from "@/lib/scenarios/runtime";
 import { computeOutcome, computeStars, isHiddenFailure } from "@/lib/engine/scoring";
 import { buildRecommendations, findBreakpoints } from "@/lib/engine/recommendations";
 import { SessionState, ActionCode } from "@/lib/engine/types";
@@ -13,8 +13,8 @@ async function buildDebriefPayload(sessionId: string) {
   });
   if (!session) return null;
 
-  const persona = getPersona(session.personaId);
-  const scenario = getScenario(session.scenarioId);
+  const persona = await getPersonaById(session.personaId);
+  const scenario = await getScenarioById(session.scenarioId);
   const state = session.state as unknown as SessionState;
   const ending = session.status === "active" ? checkEnding(state, scenario) : (session.status as "success" | "failed" | "timeout");
 

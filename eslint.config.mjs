@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Документация: собранный сайт, окружение сборки и вендорная библиотека
+    // mermaid. Это не наш код, линтеру там делать нечего.
+    "site/**",
+    ".venv-docs/**",
+    "docs-site/js/**",
   ]),
 ]);
 

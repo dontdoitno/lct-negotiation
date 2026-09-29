@@ -15,6 +15,8 @@ export const ACTION_CODES = [
   "ignore_emotion",
   "mirror_aggression",
   "direct_criticism",
+  "raise_voice",
+  "threat_of_firing",
   "softness_no_substance",
   "postpone_no_deadline",
   "postpone_repeat",
@@ -43,10 +45,19 @@ export const DESTRUCTIVE_ACTIONS: ActionCode[] = [
   "ignore_emotion",
   "mirror_aggression",
   "direct_criticism",
+  "raise_voice",
+  "threat_of_firing",
   "softness_no_substance",
   "postpone_no_deadline",
   "postpone_repeat",
 ];
+
+/**
+ * Угроза увольнением по методичке психолога может оборвать разговор: тревожный
+ * и рациональный сотрудники из сценария «падение результатов» выходят из него,
+ * не дожидаясь трёх ходов на максимальном сопротивлении.
+ */
+export const CONVERSATION_BREAKERS: ActionCode[] = ["threat_of_firing"];
 
 export interface RawState {
   R: number;
@@ -63,6 +74,12 @@ export interface SessionState extends RawState {
   constructiveStreak: number;
   highResistanceStreak: number;
   postponeCount: number;
+  /**
+   * Разговор оборван действием, после которого сотрудник уходит сразу, не
+   * досиживая до трёх ходов на максимальном сопротивлении. Необязательное:
+   * сессии, начатые до появления поля, читаются без миграции.
+   */
+  brokenOff?: boolean;
 }
 
 export interface HiddenInterestLayer {
@@ -87,6 +104,8 @@ export interface Persona {
   triggers?: string[];
   soothers?: string[];
   hiddenInterests: HiddenInterestLayer[];
+  /** Сколько конструктивных действий подряд раскрывают слой. По умолчанию 2. */
+  layerRevealCost?: number;
   initialState: RawState;
   reactions: Partial<Record<ActionCode, ReactionDelta>>;
   adaptiveActions: ActionCode[];

@@ -17,6 +17,8 @@ const HUMAN: Record<ActionCode, string> = {
   ignore_emotion: "проигнорировал(а) ваше состояние",
   mirror_aggression: "ответил(а) резкостью на резкость",
   direct_criticism: "раскритиковал(а) без опоры на факты",
+  raise_voice: "повысил(а) голос",
+  threat_of_firing: "пригрозил(а) увольнением",
   softness_no_substance: "успокоил(а), не предложив ничего конкретного",
   small_talk: "сказал(а) что-то не по существу",
   clarify_fact: "уточнил(а) факт",

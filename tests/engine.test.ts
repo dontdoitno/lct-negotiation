@@ -4,13 +4,19 @@ import { checkEnding } from "@/lib/engine/endings";
 import aggressive from "@/content/personas/s1-aggressive.json";
 import anxious from "@/content/personas/s1-anxious.json";
 import rational from "@/content/personas/s1-rational.json";
+import s3Anxious from "@/content/personas/s3-anxious.json";
+import s3Rational from "@/content/personas/s3-rational.json";
 import scenario from "@/content/scenarios/s1-overload.json";
+import scenario3 from "@/content/scenarios/s3-performance-drop.json";
 import { Persona, Scenario } from "@/lib/engine/types";
 
 const aggressivePersona = aggressive as unknown as Persona;
 const anxiousPersona = anxious as unknown as Persona;
 const rationalPersona = rational as unknown as Persona;
+const s3AnxiousPersona = s3Anxious as unknown as Persona;
+const s3RationalPersona = s3Rational as unknown as Persona;
 const s1 = scenario as unknown as Scenario;
+const s3 = scenario3 as unknown as Scenario;
 
 describe("applyTurn — determinism", () => {
   it("produces the exact same output for the same input twice", () => {
@@ -121,5 +127,65 @@ describe("checkEnding", () => {
   it("returns null mid-conversation", () => {
     const state = { ...createInitialState(rationalPersona), turn: 3 };
     expect(checkEnding(state, s1)).toBeNull();
+  });
+});
+
+// --- Требования финальной методички психолога -----------------------------
+
+describe("угроза увольнением обрывает разговор", () => {
+  it("на высоком сопротивлении разговор заканчивается сразу, без трёх ходов подряд", () => {
+    // Тревожная из сценария 2 стартует с R = 75, угроза добавляет ещё.
+    const start = createInitialState(s3AnxiousPersona);
+    const { state } = applyTurn(start, ["threat_of_firing"], s3AnxiousPersona);
+
+    expect(state.brokenOff).toBe(true);
+    expect(state.highResistanceStreak).toBeLessThan(3);
+    expect(checkEnding(state, s3)).toBe("failed");
+  });
+
+  it("на низком сопротивлении разговор не обрывается, но стоит дорого", () => {
+    let state = createInitialState(s3RationalPersona);
+    // Сначала сбиваем сопротивление в пол, чтобы угроза не перевалила порог.
+    for (let i = 0; i < 4; i++) {
+      state = applyTurn(state, ["objective_criteria"], s3RationalPersona).state;
+    }
+    const before = state.R;
+    const after = applyTurn(state, ["threat_of_firing"], s3RationalPersona);
+
+    expect(after.state.brokenOff).toBeFalsy();
+    expect(checkEnding(after.state, s3)).toBeNull();
+    expect(after.state.R).toBeGreaterThan(before);
+  });
+});
+
+describe("повышение голоса", () => {
+  it("по тревожному сотруднику бьёт сильнее, чем по рациональному", () => {
+    const anxiousHit = applyTurn(createInitialState(s3AnxiousPersona), ["raise_voice"], s3AnxiousPersona);
+    const rationalHit = applyTurn(createInitialState(s3RationalPersona), ["raise_voice"], s3RationalPersona);
+
+    expect(anxiousHit.deltas.R!).toBeGreaterThan(rationalHit.deltas.R!);
+    expect(anxiousHit.deltas.T!).toBeLessThan(rationalHit.deltas.T!);
+  });
+});
+
+describe("рациональный из сценария «падение результатов»", () => {
+  it("сильнее всего реагирует на опору на критерии и раскрывает первый слой", () => {
+    let state = createInitialState(s3RationalPersona);
+    expect(state.T).toBeGreaterThanOrEqual(67); // стартовая открытость высокая
+
+    state = applyTurn(state, ["objective_criteria"], s3RationalPersona).state;
+    const second = applyTurn(state, ["open_question"], s3RationalPersona);
+
+    expect(second.revealed?.layer).toBe(1);
+    expect(second.state.I).toBeGreaterThan(0);
+  });
+
+  it("«я подумаю» без срока роняет договорённости", () => {
+    let state = createInitialState(s3RationalPersona);
+    state = applyTurn(state, ["commit_fix"], s3RationalPersona).state;
+    const after = applyTurn(state, ["postpone_no_deadline"], s3RationalPersona);
+
+    expect(after.deltas.C!).toBeLessThan(0);
+    expect(after.deltas.R!).toBeGreaterThan(0);
   });
 });

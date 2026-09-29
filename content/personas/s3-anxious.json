@@ -105,6 +105,14 @@
     },
     "postpone_repeat": {
       "R": 28
+    },
+    "raise_voice": {
+      "R": 35,
+      "T": -30
+    },
+    "threat_of_firing": {
+      "R": 40,
+      "T": -30
     }
   },
   "adaptiveActions": [
@@ -116,7 +124,8 @@
   "maladaptiveActions": [
     "pressure",
     "direct_criticism",
-    "firm_respect"
+    "raise_voice",
+    "threat_of_firing"
   ],
   "openingLine": "Здравствуйте... извините, если что-то не так. Я знаю, что в последний месяц у меня стало хуже получаться — задачи сдаю позже, на встречи иногда не успеваю. Я что-то сделала не так? Вы хотите со мной это обсудить?",
   "behaviorRules": [

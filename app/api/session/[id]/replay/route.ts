@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getPersona } from "@/lib/content/loader";
+import { getPersonaById } from "@/lib/scenarios/runtime";
 import { createInitialState } from "@/lib/engine/state";
 import { SessionState } from "@/lib/engine/types";
 import { getUserId } from "@/lib/user";
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const source = await prisma.session.findUnique({ where: { id }, include: { turns: { orderBy: { index: "asc" } } } });
   if (!source) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  const persona = getPersona(source.personaId);
+  const persona = await getPersonaById(source.personaId);
   const userId = await getUserId();
 
   const keptTurns = source.turns.filter((t) => t.index <= branchTurn);

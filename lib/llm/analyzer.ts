@@ -30,6 +30,8 @@ pressure — давит, требует, ссылается на власть
 ignore_emotion — переводит на факты, проигнорировав заявленное чувство
 mirror_aggression — отвечает на резкость резкостью
 direct_criticism — критикует работу без опоры на факты
+raise_voice — повышает голос: крик, капслок, несколько восклицательных знаков
+threat_of_firing — угрожает увольнением, заявлением, «ищи другую работу»
 softness_no_substance — успокаивает, не предлагая ничего конкретного
 postpone_no_deadline — «я подумаю» без срока
 postpone_repeat — повторное «я подумаю» (проверь историю)
@@ -88,7 +90,8 @@ export async function analyzeTurn(text: string, history: string[]): Promise<Anal
 
 interface Rule {
   action: ActionCode;
-  test: (t: string) => boolean;
+  /** `t` — реплика в нижнем регистре, `raw` — как её написали (нужен для капслока). */
+  test: (t: string, raw: string) => boolean;
 }
 
 const has = (t: string, ...words: string[]) => words.some((w) => t.includes(w));
@@ -101,9 +104,32 @@ const isPersonalPostpone = (t: string) => has(t, "подума") && !has(t, "п�
 
 const RULES: Rule[] = [
   { action: "apology", test: (t) => has(t, "извини", "прости", "я был непра", "моя ошибка", "виноват перед") },
+  // Угроза увольнением стоит выше остальных резкостей: по методичке она
+  // способна оборвать разговор, и перепутать её с обычным давлением нельзя.
+  {
+    action: "threat_of_firing",
+    test: (t) =>
+      has(
+        t,
+        "уволю",
+        "уволен",
+        "увольнение",
+        "пиши заявление",
+        "напишешь заявление",
+        "ищи другую работу",
+        "ищи другое место",
+        "не держим",
+        "расстанемся",
+      ),
+  },
+  {
+    action: "raise_voice",
+    // Капслок из трёх и более букв подряд или частокол восклицательных знаков.
+    test: (t, raw) => /!{2,}/.test(t) || /\p{Lu}{4,}/u.test(raw) || has(t, "я повторяю в последний раз"),
+  },
   {
     action: "mirror_aggression",
-    test: (t) => /!!!|хватит|заткнись|бесишь|достал/.test(t),
+    test: (t) => /хватит|заткнись|бесишь|достал/.test(t),
   },
   { action: "blame", test: (t) => has(t, "из-за тебя", "ты виноват", "ты сам виноват", "твоя вина") },
   { action: "pressure", test: (t) => has(t, "ты обязан", "ты должен", "я приказываю", "иначе будет", "жду сегодня же") },
@@ -153,12 +179,14 @@ function mockAnalyze(text: string): AnalysisResult {
   const t = text.toLowerCase();
   const matched: ActionCode[] = [];
   for (const rule of RULES) {
-    if (rule.test(t)) matched.push(rule.action);
+    if (rule.test(t, text)) matched.push(rule.action);
     if (matched.length >= 3) break;
   }
   const actions: ActionCode[] = matched.length > 0 ? matched : ["small_talk"];
 
-  const harsh = actions.some((a) => ["blame", "pressure", "mirror_aggression", "direct_criticism"].includes(a));
+  const harsh = actions.some((a) =>
+    ["blame", "pressure", "mirror_aggression", "direct_criticism", "raise_voice", "threat_of_firing"].includes(a),
+  );
   const soft = actions.includes("softness_no_substance") || actions.includes("apology");
   const firm = actions.includes("firm_respect") || actions.includes("objective_criteria");
   const tone: AnalysisResult["tone"] = harsh ? "harsh" : firm ? "firm" : soft ? "soft" : "calm";
@@ -188,6 +216,8 @@ const RATIONALE_BY_ACTION: Partial<Record<ActionCode, string>> = {
   ignore_emotion: "Вы проигнорировали то, что он только что сказал о своём состоянии.",
   mirror_aggression: "Вы ответили резкостью на резкость.",
   direct_criticism: "Вы раскритиковали его без опоры на факты.",
+  raise_voice: "Вы повысили голос.",
+  threat_of_firing: "Вы пригрозили увольнением.",
   softness_no_substance: "Вы успокоили, не предложив ничего конкретного.",
   small_talk: "Реплика не по существу разговора.",
   clarify_fact: "Вы уточнили факт.",

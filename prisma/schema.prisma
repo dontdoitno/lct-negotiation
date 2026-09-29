@@ -1,26 +1,121 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "darwin", "darwin-arm64"]
+  // rhel-openssl-3.0.x — рантайм функций Vercel. Без него клиент собирается
+  // локально, но падает в облаке: движок запроса не находится под платформу.
+  binaryTargets = ["native", "darwin", "darwin-arm64", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Neon отдаёт две строки подключения. Обычная идёт через пул и используется
+  // в рантайме, прямая нужна миграциям: через пул они не выполняются.
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+/// Аккаунт. До появления админки пользователь опознавался только анонимной
+/// cookie uid; она осталась для гостей, а записи в этой таблице нужны там, где
+/// важна роль. Поле id совпадает со значением cookie, поэтому прогресс гостя
+/// не теряется, когда он входит под сид-аккаунтом.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("user") // user | admin
+  displayName  String?
+  createdAt    DateTime @default(now())
+}
+
+/// Сценарий целиком: ситуация вместе с собеседником. Раньше это была пара
+/// файлов content/scenarios + content/personas, теперь запись в БД, которую
+/// создаёт тот же конструктор, что доступен администратору.
+model ScenarioDefinition {
+  id    String @id @default(cuid())
+  title String
+
+  // Секция 1. Контекст
+  domain     String
+  topic      String
+  playerRole String
+  npcRole    String @default("Сотрудник")
+  context    Json // string[]
+
+  // Секция 2. Собеседник
+  npcName       String
+  npcPosition   String
+  tone          String // aggressive | anxious | rational | custom
+  characterNote String // расшифровка характера для брифинга
+  temperament   String
+  triggers      Json // string[]
+  soothers      Json // string[]
+  npcGoal       String
+  initiator     String @default("npc") // npc | player
+  openingLine   String
+  exitLine      String
+
+  // Секция 3. Скрытые интересы
+  hiddenLayers    Json // { text: string }[]
+  layerRevealCost Int  @default(2)
+
+  // Секция 4. Цели игрока
+  playerGoals     Json // string[]
+  successCriteria Json // string[]
+
+  // Секция 5. Ресурсы и ограничения
+  resources   Json // string[]
+  constraints Json // string[]
+
+  // Секция 6. Сложность
+  difficultyPreset    String  @default("normal") // easy | normal | hard
+  startMetrics        Json // Record<MetricCode, "low" | "medium" | "high">
+  /// Точная донастройка поверх уровней: если метрика есть здесь, берётся это
+  /// число, а не 15/50/85 из уровня. Нужна перенесённому авторскому контенту
+  /// и тонкой правке в конструкторе.
+  startMetricsExact   Json?
+  turnLimit           Int     @default(14)
+  sensitivity         Float   @default(1)
+  showTypeInBrief     Boolean @default(false)
+  trainingModeDefault Boolean @default(false)
+
+  // Секция 7. Реакции на действия игрока
+  reactions Json // Record<ActionCode, Record<MetricCode, ReactionLevel>>
+
+  /// Заготовленные реплики для офлайн-режима: по шесть на каждый уровень
+  /// сопротивления. В конструкторе не редактируются, берутся из пресета тона,
+  /// у шести исходных сценариев — авторские.
+  fallbackLines Json?
+
+  // Секция 8. Системный промт
+  customPrompt String?
+
+  status           String   @default("draft") // draft | published
+  playthroughCount Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([domain, topic])
 }
 
 model Session {
-  id         String    @id @default(cuid())
-  userId     String
-  scenarioId String
-  personaId  String
-  state      Json
-  status     String // active | success | failed | timeout
-  parentId   String?
-  branchTurn Int?
-  createdAt  DateTime  @default(now())
-  finishedAt DateTime?
-  turns      Turn[]
-  debrief    Debrief?
+  id          String    @id @default(cuid())
+  userId      String
+  scenarioId  String
+  personaId   String
+  /// Тест-прогон из админки: не идёт в статистику и в карту навыков.
+  isTestRun   Boolean   @default(false)
+  /// Первая реплика собеседника, сгенерированная при создании сессии по
+  /// ориентиру из конструктора. Хранится, чтобы перезагрузка экрана не
+  /// порождала новую версию начала разговора.
+  openingLine String?
+  state       Json
+  status      String // active | success | failed | timeout
+  parentId    String?
+  branchTurn  Int?
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  turns       Turn[]
+  debrief     Debrief?
 
   @@index([userId])
 }
@@ -78,14 +173,14 @@ model CustomScenario {
 // deterministic engine above (Session/Turn), not a replacement for it.
 
 model JudgeSession {
-  id          String    @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
   scenarioId  String
   personaType String // rational | anxious | aggressive
   metrics     Json // current six named metrics (adaptation/trust/resistance/interests/solutions/commitment)
-  turnCount   Int       @default(0)
+  turnCount   Int         @default(0)
   status      String // active | success | failed | timeout
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime    @default(now())
   finishedAt  DateTime?
   turns       JudgeTurn[]
 

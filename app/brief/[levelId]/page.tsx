@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPersona, getScenario, listLevels } from "@/lib/content/loader";
+import { getLevel } from "@/lib/scenarios/runtime";
 import { BriefBottomBar } from "@/components/brief/BriefBottomBar";
 
 /**
@@ -38,10 +38,10 @@ function Section({
 
 export default async function BriefPage({ params }: { params: Promise<{ levelId: string }> }) {
   const { levelId } = await params;
-  if (!listLevels().some((l) => l.persona.id === levelId)) notFound();
+  const level = await getLevel(levelId);
+  if (!level) notFound();
 
-  const persona = getPersona(levelId);
-  const scenario = getScenario(persona.scenarioId);
+  const { persona, scenario } = level;
   const constraints = scenario.managerConstraints ?? [];
 
   return (

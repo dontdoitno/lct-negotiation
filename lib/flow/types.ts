@@ -32,8 +32,11 @@ export interface CaseTileData {
   /** Shown in place of the persona type: working out who you are talking to
       is part of the exercise, so the board only identifies the call. */
   callNumber: number;
-  scenarioId: string;
-  scenarioTitle: string;
+  title: string;
+  domain: string;
+  topic: string;
+  tone: "aggressive" | "anxious" | "rational" | "custom";
+  difficulty: "easy" | "normal" | "hard";
   personaType: "rational" | "anxious" | "aggressive";
   displayName: string;
   attempts: number;

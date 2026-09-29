@@ -77,6 +77,7 @@ nav:
       - LLM-судья, эксперимент: architecture/judge.md
   - 3. Запуск:
       - Быстрый старт: run/quickstart.md
+      - Деплой на Vercel: run/deploy.md
       - Переменные окружения: run/environment.md
       - Проверка после перезапуска: run/restart.md
       - Если что-то не работает: run/troubleshooting.md

@@ -31,6 +31,17 @@ export interface CallState {
   streamingNpcId: string | null;
   sending: boolean;
   error: string | null;
+  /**
+   * Отладка тест-прогона: заполняется всегда, показывается только в админском
+   * режиме. Дешевле, чем отдельный контур состояния ради одной панели.
+   */
+  debug: {
+    actions: string[];
+    rationale: string;
+    deltas: Deltas;
+    revealedLayer: number | null;
+    rawReply: string;
+  } | null;
 }
 
 export const initialCallState: CallState = {
@@ -50,14 +61,15 @@ export const initialCallState: CallState = {
   streamingNpcId: null,
   sending: false,
   error: null,
+  debug: null,
 };
 
 export type CallAction =
   | { type: "INIT"; payload: { scenario: Scenario; persona: Persona; state: SessionState; openingLine: string | null; transcript: TranscriptItem[]; status: CallState["status"] } }
   | { type: "SEND_START"; payload: { text: string; id: string } }
-  | { type: "ANALYSIS"; payload: { rationale: string; deltas: Deltas } }
+  | { type: "ANALYSIS"; payload: { rationale: string; deltas: Deltas; actions?: string[] } }
   | { type: "STATE"; payload: { raw: SessionState; goals: GoalStatus[]; turn: number; turnsLeft: number } }
-  | { type: "REVEAL"; payload: { text: string } }
+  | { type: "REVEAL"; payload: { text: string; layer?: number } }
   | { type: "NPC_CHUNK"; payload: { text: string } }
   | { type: "NPC_DONE"; payload: { text: string; status: CallState["status"]; points: number } }
   | { type: "POP_SCORE"; payload: { id: string } }
@@ -102,14 +114,30 @@ export function callReducer(s: CallState, action: CallAction): CallState {
         }
       }
       const transcript = s.transcript.map((t, i) => (i === idx ? { ...t, rationale, positive, deltas } : t));
-      return { ...s, deltas, deltaSeq: s.deltaSeq + 1, transcript };
+      return {
+        ...s,
+        deltas,
+        deltaSeq: s.deltaSeq + 1,
+        transcript,
+        debug: {
+          actions: action.payload.actions ?? [],
+          rationale,
+          deltas,
+          revealedLayer: null,
+          rawReply: "",
+        },
+      };
     }
 
     case "STATE":
       return { ...s, state: action.payload.raw, goals: action.payload.goals, turn: action.payload.turn, turnsLeft: action.payload.turnsLeft };
 
     case "REVEAL":
-      return { ...s, transcript: [...s.transcript, { id: uid(), speaker: "system", text: `Раскрыт скрытый интерес: «${action.payload.text}»` }] };
+      return {
+        ...s,
+        transcript: [...s.transcript, { id: uid(), speaker: "system", text: `Раскрыт скрытый интерес: «${action.payload.text}»` }],
+        debug: s.debug ? { ...s.debug, revealedLayer: action.payload.layer ?? null } : s.debug,
+      };
 
     case "NPC_CHUNK": {
       const streamId = s.streamingNpcId ?? uid();
@@ -134,6 +162,7 @@ export function callReducer(s: CallState, action: CallAction): CallState {
         sending: false,
         status: action.payload.status,
         scorePopups: [...s.scorePopups, { id: uid(), points: action.payload.points }],
+        debug: s.debug ? { ...s.debug, rawReply: action.payload.text } : s.debug,
       };
     }
 

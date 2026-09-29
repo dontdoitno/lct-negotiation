@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getPersona } from "@/lib/content/loader";
+import { getPersonaById } from "@/lib/scenarios/runtime";
 import { SessionState } from "@/lib/engine/types";
 import { CommitmentItem, CommitmentReaction } from "@/lib/flow/types";
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const session = await prisma.session.findUnique({ where: { id } });
   if (!session) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  const persona = getPersona(session.personaId);
+  const persona = await getPersonaById(session.personaId);
   const state = session.state as unknown as SessionState;
 
   const vagueIndex = items.findIndex((i) => !i.who.trim() || !i.deadline.trim());

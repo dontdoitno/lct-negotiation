@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getPersona, getScenario } from "@/lib/content/loader";
+import { getPersonaById, getScenarioById } from "@/lib/scenarios/runtime";
 import { runPrefilter } from "./prefilter";
 import { callJudge } from "./judge";
 import { callActor } from "./actor";
@@ -16,15 +16,14 @@ function levelIdFor(scenarioId: string, personaType: PersonaType): string {
   return `${prefix}-${personaType}`;
 }
 
-function scenarioContextFor(scenarioId: string) {
-  const scenario = getScenario(scenarioId);
-  return scenario;
+async function scenarioContextFor(scenarioId: string) {
+  return getScenarioById(scenarioId);
 }
 
 export async function createJudgeSession(userId: string, scenarioId: string, personaType: PersonaType) {
   const levelId = levelIdFor(scenarioId, personaType);
-  const persona = getPersona(levelId); // throws a clear error if content is missing (e.g. scenario 2 personas not authored yet)
-  const scenario = scenarioContextFor(scenarioId);
+  const persona = await getPersonaById(levelId); // throws a clear error if content is missing (e.g. scenario 2 personas not authored yet)
+  const scenario = await scenarioContextFor(scenarioId);
   const metrics = engineStateToJudgeMetrics(persona.initialState);
 
   const session = await prisma.judgeSession.create({
@@ -68,8 +67,8 @@ export async function processJudgeTurn(sessionId: string, text: string): Promise
 
   const personaType = session.personaType as PersonaType;
   const levelId = levelIdFor(session.scenarioId, personaType);
-  const persona = getPersona(levelId);
-  const scenario = getScenario(session.scenarioId);
+  const persona = await getPersonaById(levelId);
+  const scenario = await getScenarioById(session.scenarioId);
   const currentMetrics = session.metrics as unknown as JudgeMetrics;
 
   const history: HistoryTurn[] = session.turns.map((t) => ({ playerText: t.playerText, npcReply: t.npcReply }));

@@ -1,33 +1,39 @@
 import { prisma } from "@/lib/db";
-import { listLevels } from "@/lib/content/loader";
+import { listRuntimeLevels } from "@/lib/scenarios/runtime";
 import { MetricCode, SessionState } from "@/lib/engine/types";
+import { DifficultyPreset, Tone } from "@/lib/scenarios/types";
 import { PersonaType } from "./matching";
 
 export interface CaseBase {
   levelId: string;
-  /** Stable 1-based ordinal shown instead of the persona type. */
+  /** Стабильный номер, который показывается вместо типа личности. */
   callNumber: number;
-  scenarioId: string;
-  scenarioTitle: string;
+  title: string;
+  domain: string;
+  topic: string;
+  tone: Tone;
+  difficulty: DifficultyPreset;
+  /** Тип для подсказок подбора. Игроку не показывается. */
   personaType: PersonaType;
   displayName: string;
   attempts: number;
-  /** Best finished attempt per metric; null when nothing is finished yet. */
+  /** Лучший результат по метрике среди завершённых попыток; null, пока их нет. */
   bestMetrics: Partial<Record<MetricCode, number>> | null;
 }
 
 const METRICS: MetricCode[] = ["A", "T", "R", "I", "S", "C"];
 
-/** Lower resistance is the better result, so "best" flips for R. */
+/** Меньшее сопротивление — лучший результат, поэтому для R «лучшее» переворачивается. */
 function better(metric: MetricCode, a: number, b: number) {
   return metric === "R" ? Math.min(a, b) : Math.max(a, b);
 }
 
 export async function loadCases(userId: string): Promise<CaseBase[]> {
-  const levels = listLevels();
+  const levels = await listRuntimeLevels();
 
   const finished = await prisma.session.findMany({
-    where: { userId, status: { in: ["success", "failed", "timeout"] } },
+    // Тест-прогоны администратора в пользовательскую статистику не идут.
+    where: { userId, isTestRun: false, status: { in: ["success", "failed", "timeout"] } },
     select: { personaId: true, state: true },
   });
 
@@ -48,16 +54,19 @@ export async function loadCases(userId: string): Promise<CaseBase[]> {
   }
 
   return levels.map((l, i) => {
-    const agg = byLevel.get(l.persona.id);
+    const agg = byLevel.get(l.levelId);
     return {
-      levelId: l.persona.id,
+      levelId: l.levelId,
       callNumber: i + 1,
-      scenarioId: l.scenario.id,
-      scenarioTitle: l.scenario.title,
-      // No typeLabel here on purpose: the board must not carry the answer,
-      // not even in the serialised props it ships to the client.
+      title: l.definition.title,
+      domain: l.definition.domain,
+      topic: l.definition.topic,
+      tone: l.definition.tone,
+      difficulty: l.definition.difficultyPreset,
+      // Тип личности едет на клиент только ради подсказок подбора: на карточке
+      // его не показывают, определить характер — задача участника.
       personaType: l.persona.type,
-      displayName: l.persona.displayName,
+      displayName: l.definition.npcName,
       attempts: agg?.attempts ?? 0,
       bestMetrics: agg && Object.keys(agg.best).length > 0 ? agg.best : null,
     };

@@ -28,7 +28,8 @@
   "turnLimit": 14,
   "personas": [
     "s3-aggressive",
-    "s3-anxious"
+    "s3-anxious",
+    "s3-rational"
   ],
   "config": {
     "domain": "IT / разработка",

@@ -61,6 +61,8 @@ const ACTION_POINTS: Partial<Record<ActionCode, number>> = {
   ignore_emotion: -15,
   mirror_aggression: -25,
   direct_criticism: -15,
+  raise_voice: -25,
+  threat_of_firing: -35,
   softness_no_substance: -15,
   postpone_no_deadline: -15,
   postpone_repeat: -15,

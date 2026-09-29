@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getPersona, getScenario } from "@/lib/content/loader";
+import { getPersonaById, getScenarioById } from "@/lib/scenarios/runtime";
 import { SessionState } from "@/lib/engine/types";
 import { EndReason } from "@/lib/flow/types";
 import { EndedView } from "@/components/session/EndedView";
@@ -15,8 +15,8 @@ export default async function SessionEndedPage({ params }: { params: Promise<{ i
   // debrief — otherwise a success would be greeted with "он сорвался".
   if (session.status === "success") redirect(`/session/${id}/debrief`);
 
-  const persona = getPersona(session.personaId);
-  const scenario = getScenario(session.scenarioId);
+  const persona = await getPersonaById(session.personaId);
+  const scenario = await getScenarioById(session.scenarioId);
   const state = session.state as unknown as SessionState;
 
   const endReason: EndReason =

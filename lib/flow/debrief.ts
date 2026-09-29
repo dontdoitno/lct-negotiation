@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getPersona, getScenario, listLevels } from "@/lib/content/loader";
+import { requireLevel, listRuntimeLevels } from "@/lib/scenarios/runtime";
 import { computeOutcome } from "@/lib/engine/scoring";
 import { ActionCode, MetricCode, SessionState } from "@/lib/engine/types";
 import { CONSTRUCTIVE_ACTIONS } from "@/lib/engine/types";
@@ -121,8 +121,8 @@ export async function loadDebrief(sessionId: string): Promise<DebriefData | null
   });
   if (!session) return null;
 
-  const persona = getPersona(session.personaId);
-  const scenario = getScenario(session.scenarioId);
+  const level = await requireLevel(session.personaId);
+  const { persona, scenario } = level;
   const state = session.state as unknown as SessionState;
 
   const endReason = endReasonOf(session.status, state.turn, scenario.turnLimit);
@@ -189,9 +189,12 @@ export async function loadDebrief(sessionId: string): Promise<DebriefData | null
 
   const { worked, killed } = splitWorkedKilled(plain);
 
-  const siblings = listLevels()
-    .filter((l) => l.scenario.id === scenario.id && l.persona.id !== persona.id)
-    .map((l) => l.persona.id);
+  // «Тот же кейс, другой характер»: раньше сценарий был общим для нескольких
+  // персонажей, теперь каждый сценарий отдельная запись, поэтому соседей ищем
+  // по совпадению темы.
+  const siblings = (await listRuntimeLevels())
+    .filter((l) => l.definition.topic === level.definition.topic && l.levelId !== level.levelId)
+    .map((l) => l.levelId);
 
   return {
     sessionId,

@@ -27,7 +27,7 @@ export const LANDING = {
   ],
   primaryCta: "Попробовать разговор",
   secondaryCta: "Войти",
-  productName: "Разбор полётов",
+  productName: "Арена переговоров",
 };
 
 export const QUIZ = {
@@ -129,6 +129,20 @@ export const CASES = {
   attempts: (n: number) => (n === 1 ? "1 попытка" : `${n} попыток`),
   noAttempts: "Не пройдено",
   nextStepTitle: "Что взять дальше",
+
+  // Динамический каталог: фильтры, поиск и пустые состояния
+  searchLabel: "Поиск",
+  searchPlaceholder: "Название или тема разговора",
+  filterDomain: "Сфера",
+  filterTone: "Характер",
+  filterDifficulty: "Сложность",
+  filterUnplayed: "Только непройденные",
+  resetFilters: "Сбросить фильтры",
+  nothingFound: "Под эти условия ничего не подошло.",
+  emptyTitle: "Ни одного опубликованного сценария",
+  emptyAdminHint: "Создайте сценарий в админке, и он появится здесь.",
+  emptyUserHint: "Разговоры ещё не опубликованы. Загляните позже.",
+  emptyAdminCta: "Создать сценарий",
 };
 
 /**
@@ -160,6 +174,44 @@ export const TYPE_GUESS = {
   } as Record<"aggressive" | "anxious" | "rational", string>,
   whyItMatters:
     "От типа зависит, что снимает сопротивление: тревожному нужно признание, агрессивному — твёрдая рамка, рациональному — критерии.",
+};
+
+/** Админский контур. Тот же язык интерфейса, что и в пользовательском. */
+export const ADMIN = {
+  sectionTitle: "Админка",
+  backToCatalog: "К каталогу",
+  listTitle: "Сценарии",
+  create: "Создать сценарий",
+  generate: "Сгенерировать сценарий",
+  emptyTitle: "Пока ни одного сценария",
+  emptyHint: "Создайте сценарий вручную или сгенерируйте черновик по шести полям.",
+  columns: {
+    title: "Название",
+    domain: "Сфера",
+    topic: "Тема",
+    tone: "Характер",
+    difficulty: "Сложность",
+    status: "Статус",
+    playthroughs: "Прохождений",
+    updatedAt: "Изменён",
+  },
+  statusDraft: "Черновик",
+  statusPublished: "Опубликован",
+  actions: {
+    edit: "Редактировать",
+    duplicate: "Дублировать",
+    test: "Тест-прогон",
+    publish: "Опубликовать",
+    unpublish: "Снять с публикации",
+    remove: "Удалить",
+  },
+  confirmDelete: (title: string) => `Удалить сценарий «${title}»? Отменить это будет нельзя.`,
+  filterStatus: "Статус",
+  filterDomain: "Сфера",
+  searchPlaceholder: "Название или тема",
+  sortUpdated: "По дате изменения",
+  sortPlaythroughs: "По числу прохождений",
+  nothingFound: "Под эти условия ничего не подошло.",
 };
 
 export const COMMITMENTS = {
@@ -235,6 +287,8 @@ export const ACTION_BADGE: Record<string, string> = {
   ignore_emotion: "игнорирование эмоции",
   mirror_aggression: "зеркалирование агрессии",
   direct_criticism: "прямая критика",
+  raise_voice: "повышение голоса",
+  threat_of_firing: "угроза увольнением",
   postpone_no_deadline: "«я подумаю» без срока",
   postpone_with_deadline: "«я подумаю» со сроком",
   postpone_repeat: "повторное «я подумаю»",

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { getPersona, getScenario } from "@/lib/content/loader";
+import { getPersonaById, getScenarioById } from "@/lib/scenarios/runtime";
 import { applyTurn } from "@/lib/engine/state";
 import { checkEnding } from "@/lib/engine/endings";
 import { scoreTurn } from "@/lib/engine/scoring";
@@ -8,6 +8,7 @@ import { analyzeTurn } from "@/lib/llm/analyzer";
 import { streamActorReply } from "@/lib/llm/actor";
 import { humanizeActions } from "@/lib/llm/humanize";
 import { ActionCode, SessionState } from "@/lib/engine/types";
+import { incrementPlaythroughCount } from "@/lib/scenarios/repository";
 
 function sse(event: string, data: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -25,8 +26,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!session) return new Response(JSON.stringify({ error: "not_found" }), { status: 404 });
   if (session.status !== "active") return new Response(JSON.stringify({ error: "session_finished" }), { status: 409 });
 
-  const persona = getPersona(session.personaId);
-  const scenario = getScenario(session.scenarioId);
+  const persona = await getPersonaById(session.personaId);
+  const scenario = await getScenarioById(session.scenarioId);
   const state = session.state as unknown as SessionState;
 
   const stream = new ReadableStream({
@@ -131,6 +132,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           finishedAt: ending ? new Date() : undefined,
         },
       });
+
+      // Счётчик прохождений растёт один раз, на завершении разговора.
+      // Тест-прогоны администратора в него не попадают.
+      if (ending && !session.isTestRun) {
+        await incrementPlaythroughCount(session.personaId);
+      }
 
       controller.enqueue(
         enc.encode(

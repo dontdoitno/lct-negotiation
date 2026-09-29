@@ -1,8 +1,8 @@
 # Общая архитектура
 
-Приложение целиком живёт в одном процессе Next.js 16. Отдельного бэкенда нет: серверная часть это Route Handlers в `app/api/*`, они выполняются в Node.js рядом со страницами. База данных это файл SQLite. Контент сценариев это JSON-файлы на диске.
+Приложение целиком живёт в одном процессе Next.js 16. Отдельного бэкенда нет: серверная часть это Route Handlers в `app/api/*`, они выполняются в Node.js рядом со страницами. База данных это управляемый PostgreSQL. Контент сценариев это JSON-файлы на диске.
 
-Такой выбор сделан ради одного свойства: прототип поднимается четырьмя командами на любой машине с Node.js и не требует ни Docker, ни внешних сервисов. Разбор запуска на странице [Быстрый старт](../run/quickstart.md).
+Такой выбор сделан ради одного свойства: прототип поднимается несколькими командами на любой машине с Node.js и не требует ни Docker, ни своей инфраструктуры. Разбор запуска на странице [Быстрый старт](../run/quickstart.md).
 
 ## Компоненты
 
@@ -32,7 +32,7 @@ flowchart TB
     end
 
     subgraph DATA["Данные"]
-        DB[("SQLite через Prisma<br/>Session, Turn, Debrief, Progress")]
+        DB[("PostgreSQL через Prisma<br/>Session, Turn, Debrief, Progress")]
         JSON["content/scenarios/*.json<br/>content/personas/*.json"]
     end
 
@@ -87,7 +87,7 @@ sequenceDiagram
     participant AN as Анализатор
     participant EN as Движок состояния
     participant AC as Актёр
-    participant DB as SQLite
+    participant DB as PostgreSQL
 
     U->>C: Текст или голос
     C->>R: { text, inputMode }
