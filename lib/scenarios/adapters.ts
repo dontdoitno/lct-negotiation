@@ -88,7 +88,7 @@ export function toPersona(def: ScenarioDefinition): Persona {
     avatar: def.avatar ?? undefined,
     voice: "alena",
     temperament: def.temperament,
-    backstory: def.context.join(" "),
+    backstory: def.npcBackstory?.trim() || def.context.join(" "),
     goal: def.npcGoal,
     triggers: def.triggers,
     soothers: def.soothers,
@@ -144,5 +144,6 @@ export function toScenario(def: ScenarioDefinition): Scenario {
     managerConstraints: def.constraints,
     playerRoleDescription: def.playerRole,
     successCriterion: def.successCriteria.join(" "),
+    trainingModeDefault: def.trainingModeDefault,
   };
 }

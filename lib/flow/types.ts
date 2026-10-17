@@ -78,7 +78,7 @@ export interface CommitmentReaction {
 // Session end / debrief
 // ---------------------------------------------------------------------------
 
-export type EndReason = "committed" | "turn_limit" | "ai_left";
+export type EndReason = "committed" | "turn_limit" | "ai_left" | "player_left";
 
 export interface TimelineTurn {
   index: number;

@@ -124,8 +124,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         },
       });
 
-      await prisma.session.update({
-        where: { id },
+      // Статус переписываем только пока сессия активна. Игрок мог нажать
+      // «Завершить разговор», пока этот ход летел: безусловный update вернул бы
+      // закрытой сессии статус active, и разговор снова перестал бы
+      // засчитываться попыткой.
+      const saved = await prisma.session.updateMany({
+        where: { id, status: "active" },
         data: {
           state: nextState as unknown as object,
           status,
@@ -133,9 +137,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         },
       });
 
+      // Сессию закрыли, пока шёл ход. Исход и время финала оставляем как есть,
+      // но метрики досчитываем: иначе в разборе таймлайн показывал бы реплику,
+      // которой нет в итоговых цифрах.
+      if (saved.count === 0) {
+        await prisma.session.update({
+          where: { id },
+          data: { state: nextState as unknown as object },
+        });
+      }
+
       // Счётчик прохождений растёт один раз, на завершении разговора.
-      // Тест-прогоны администратора в него не попадают.
-      if (ending && !session.isTestRun) {
+      // Тест-прогоны администратора в него не попадают. saved.count отсекает
+      // двойной счёт, если сессию уже закрыла кнопка завершения.
+      if (ending && saved.count > 0 && !session.isTestRun) {
         await incrementPlaythroughCount(session.personaId);
       }
 
