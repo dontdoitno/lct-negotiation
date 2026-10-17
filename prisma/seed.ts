@@ -33,8 +33,13 @@ function hashPassword(password: string): string {
 }
 
 /** Контекст для промта: три коротких пункта вместо одного абзаца. */
+/**
+ * Текст брифинга для игрока. Предысторию персонажа сюда не кладём: она
+ * написана от второго лица («ты не вывозишь») и адресована ИИ-сотруднику, а
+ * вдобавок выдаёт характер до первой реплики.
+ */
 function contextLines(scenario: Scenario, persona: Persona): string[] {
-  const lines = [scenario.context, persona.backstory];
+  const lines = [scenario.context];
   if (persona.trigger) lines.push(persona.trigger);
   return lines.filter(Boolean).map((l) => l.trim());
 }
@@ -115,6 +120,7 @@ async function seedScenarios() {
         context: contextLines(scenario, persona),
         npcName: persona.displayName,
         npcPosition: persona.position,
+        npcBackstory: persona.backstory?.trim() || null,
         avatar: AVATAR_BY_PERSONA[persona.id] ?? null,
         tone: persona.type,
         characterNote: persona.behaviorNote ?? "",
@@ -138,7 +144,6 @@ async function seedScenarios() {
         startMetricsExact: persona.initialState as never,
         turnLimit: scenario.turnLimit,
         sensitivity: 1,
-        showTypeInBrief: false,
         trainingModeDefault: persona.type === "rational",
         reactions: toReactionMatrix(persona) as never,
         fallbackLines: persona.linesByResistance as never,
