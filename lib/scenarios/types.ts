@@ -57,6 +57,8 @@ export interface ScenarioDefinition {
   // 2. Собеседник
   npcName: string;
   npcPosition: string;
+  /** Предыстория от второго лица. Только для промта актёра, не для брифинга. */
+  npcBackstory: string;
   /** Видео-аватар из /public/avatars. Пусто — круг с буквой. */
   avatar: AvatarId | null;
   tone: Tone;
@@ -90,7 +92,6 @@ export interface ScenarioDefinition {
   turnLimit: number;
   /** Множитель дельт: насколько сильно действия игрока двигают метрики. */
   sensitivity: number;
-  showTypeInBrief: boolean;
   trainingModeDefault: boolean;
 
   // 7. Реакции

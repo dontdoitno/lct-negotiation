@@ -24,7 +24,7 @@ export async function loadScenarioStats(): Promise<ScenarioStats[]> {
   const [scenarios, sessions] = await Promise.all([
     listScenarios(),
     prisma.session.findMany({
-      where: { isTestRun: false, status: { in: ["success", "failed", "timeout"] } },
+      where: { isTestRun: false, status: { in: ["success", "failed", "timeout", "stopped"] } },
       select: { personaId: true, status: true, state: true },
     }),
   ]);

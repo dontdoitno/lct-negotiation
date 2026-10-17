@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { callReducer, initialCallState, TranscriptItem } from "@/lib/call/reducer";
 import { postSSE } from "@/lib/call/sse";
@@ -27,6 +27,12 @@ export default function CallPage() {
   const [hintOpen, setHintOpen] = useState(false);
   // Тест-прогон из админки: та же механика, сверху плашка, справа отладка.
   const [isTestRun, setIsTestRun] = useState(false);
+  // Завершение идёт: кнопка не должна срабатывать второй раз, пока мы
+  // закрываем сессию на сервере.
+  const [finishing, setFinishing] = useState(false);
+  // Запрос текущего хода. Нужен, чтобы оборвать его при завершении: иначе
+  // ответ модели дописывал ход в уже закрытую сессию.
+  const turnAbort = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -75,6 +81,8 @@ export default function CallPage() {
       if (!text || s.sending || s.status !== "active") return;
       if (mode === "text") setInput("");
       dispatch({ type: "SEND_START", payload: { text, id: `local-${Date.now()}` } });
+      const controller = new AbortController();
+      turnAbort.current = controller;
       try {
         await postSSE(`/api/session/${sessionId}/turn`, { text, inputMode: mode }, (e) => {
           const data = JSON.parse(e.data);
@@ -95,9 +103,14 @@ export default function CallPage() {
               dispatch({ type: "NPC_DONE", payload: data });
               break;
           }
-        });
+        }, controller.signal);
       } catch (err) {
+        // Ход оборван самим игроком через «Завершить разговор»: это не ошибка,
+        // показывать её на экране незачем.
+        if (controller.signal.aborted) return;
         dispatch({ type: "ERROR", payload: { message: err instanceof Error ? err.message : "Ошибка соединения" } });
+      } finally {
+        if (turnAbort.current === controller) turnAbort.current = null;
       }
     },
     [s.sending, s.status, sessionId],
@@ -115,7 +128,7 @@ export default function CallPage() {
 
   const persona = s.persona;
   const scenario = s.scenario;
-  const trainingMode = trainingOverride ?? persona.type === "rational";
+  const trainingMode = trainingOverride ?? scenario.trainingModeDefault === true;
   const ended = s.status !== "active";
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
@@ -131,14 +144,48 @@ export default function CallPage() {
   const stageStatus: StageStatus = s.portraitStatus === "speaking" ? "speaking" : s.portraitStatus === "thinking" ? "thinking" : "listening";
   const reply = s.portraitStatus === "thinking" ? null : npcItem?.text ?? null;
 
-  // A conversation that broke off (AI left, turns ran out) goes through the
-  // interstitial first. Reaching agreement, or the player ending the call
-  // deliberately, goes straight to the debrief.
-  const endedHref =
-    ended && s.status !== "success" ? `/session/${sessionId}/ended` : `/session/${sessionId}/debrief`;
+  // Экран финала нужен только там, где разговор оборвался сам: сотрудник ушёл
+  // или кончились ходы. Договорённость и остановка по кнопке ведут сразу в
+  // разбор, иначе игрок увидел бы «он сорвался» после собственного решения.
+  const viaInterstitial = ended && s.status !== "success" && s.status !== "stopped";
+  const endedHref = viaInterstitial
+    ? `/session/${sessionId}/ended`
+    : `/session/${sessionId}/debrief`;
 
-  function endCall() {
-    if (ended || window.confirm("Завершить разговор и перейти к разбору?")) router.push(endedHref);
+  /**
+   * Завершение по кнопке. Порядок важен: сначала обрываем летящий ход, потом
+   * закрываем сессию на сервере и только затем уходим на разбор.
+   *
+   * Раньше здесь был один router.push, сессия навсегда оставалась активной,
+   * разговор не засчитывался попыткой и доска кейсов не открывалась.
+   */
+  async function endCall() {
+    if (ended) {
+      router.push(endedHref);
+      return;
+    }
+    if (finishing) return;
+    if (!window.confirm("Завершить разговор и перейти к разбору?")) return;
+
+    setFinishing(true);
+    turnAbort.current?.abort();
+    speech.stop();
+
+    try {
+      const res = await fetch(`/api/session/${sessionId}/finish`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      // Сессия могла закрыться сама последним ходом. Тогда ведём туда, куда
+      // полагается по настоящему исходу, а не по остановке.
+      const status: string = data?.status ?? "stopped";
+      const toInterstitial = status !== "success" && status !== "stopped" && status !== "active";
+      router.push(
+        toInterstitial ? `/session/${sessionId}/ended` : `/session/${sessionId}/debrief`,
+      );
+    } catch {
+      // Сервер недоступен: разбор всё равно открываем, он считается по уже
+      // сохранённым ходам. Лучше показать результат, чем запереть игрока.
+      router.push(`/session/${sessionId}/debrief`);
+    }
   }
 
   // В тест-прогоне тот же экран, но с плашкой сверху и панелью отладки справа.
@@ -161,8 +208,12 @@ export default function CallPage() {
             <div className="h-full bg-disabled transition-[width]" style={{ width: `${Math.min(100, (s.turn / scenario.turnLimit) * 100)}%` }} />
           </div>
         </div>
-        <button onClick={endCall} className="rounded-md border-2 border-primary px-4 py-1.5 text-base">
-          Завершить разговор
+        <button
+          onClick={endCall}
+          disabled={finishing}
+          className="rounded-md border-2 border-primary px-4 py-1.5 text-base disabled:opacity-60"
+        >
+          {finishing ? "Завершаем…" : "Завершить разговор"}
         </button>
       </header>
 

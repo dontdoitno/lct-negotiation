@@ -53,3 +53,4 @@ __pycache__/
 *.claude
 *.github
 *.
+*inner_docs/

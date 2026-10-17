@@ -148,6 +148,8 @@ export interface Scenario {
   // the player to read in 20 seconds rather than for the engine to score.
   playerRoleDescription?: string;
   successCriterion?: string;
+  /** Включать ли обучающий режим с самого начала. Настройка администратора. */
+  trainingModeDefault?: boolean;
 }
 
 export type Ending = "success" | "failed" | "timeout" | null;

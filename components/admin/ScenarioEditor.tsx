@@ -430,6 +430,17 @@ export function ScenarioEditor({
               />
             </Field>
 
+            <Field
+              label="Предыстория собеседника"
+              hint="Обращение на «ты», от лица собеседника. Уходит только в промт, игрок её не видит."
+            >
+              <TextArea
+                value={draft.npcBackstory}
+                onChange={(next) => patch({ npcBackstory: next })}
+                rows={3}
+              />
+            </Field>
+
             <Field label="Темперамент">
               <TextArea value={draft.temperament} onChange={(next) => patch({ temperament: next })} rows={4} />
             </Field>
@@ -599,18 +610,11 @@ export function ScenarioEditor({
               />
             </div>
 
-            <div className="flex flex-wrap gap-5">
-              <Toggle
-                label="Показывать тип характера в брифинге"
-                checked={draft.showTypeInBrief}
-                onChange={(next) => patch({ showTypeInBrief: next })}
-              />
-              <Toggle
-                label="Учебный режим по умолчанию"
-                checked={draft.trainingModeDefault}
-                onChange={(next) => patch({ trainingModeDefault: next })}
-              />
-            </div>
+            <Toggle
+              label="Учебный режим по умолчанию"
+              checked={draft.trainingModeDefault}
+              onChange={(next) => patch({ trainingModeDefault: next })}
+            />
           </Section>
 
           <Section id="reactions" title="7. Реакции на действия игрока">

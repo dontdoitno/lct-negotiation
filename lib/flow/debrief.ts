@@ -18,6 +18,7 @@ const METRICS: MetricCode[] = ["A", "T", "R", "I", "S", "C"];
 function endReasonOf(status: string, turnCount: number, turnLimit: number): EndReason {
   if (status === "success") return "committed";
   if (status === "failed") return "ai_left";
+  if (status === "stopped") return "player_left";
   if (turnCount >= turnLimit) return "turn_limit";
   return "turn_limit";
 }
@@ -33,6 +34,9 @@ function buildVerdict(state: SessionState, endReason: EndReason, name: string): 
   }
   if (endReason === "ai_left") {
     return `Разговор оборвался на сопротивлении. До настоящей причины дойти не удалось.`;
+  }
+  if (endReason === "player_left" && state.C < 50) {
+    return `Вы завершили разговор раньше, чем появилась конкретика: кто, что и к какому сроку — не зафиксировано.`;
   }
   if (endReason === "turn_limit" && state.C < 50) {
     return `Время вышло, а конкретики так и не появилось: кто, что и к какому сроку — не зафиксировано.`;

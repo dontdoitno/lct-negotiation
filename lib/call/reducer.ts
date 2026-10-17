@@ -26,7 +26,7 @@ export interface CallState {
   turnsLeft: number;
   transcript: TranscriptItem[];
   portraitStatus: "idle" | "speaking" | "thinking";
-  status: "active" | "success" | "failed" | "timeout";
+  status: "active" | "success" | "failed" | "timeout" | "stopped";
   scorePopups: { id: string; points: number }[];
   streamingNpcId: string | null;
   sending: boolean;

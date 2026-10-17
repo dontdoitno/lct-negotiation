@@ -13,7 +13,9 @@ export default async function SessionEndedPage({ params }: { params: Promise<{ i
   // This screen exists only for conversations that broke off. A session that
   // reached agreement was not interrupted, so it belongs straight in the
   // debrief — otherwise a success would be greeted with "он сорвался".
-  if (session.status === "success") redirect(`/session/${id}/debrief`);
+  if (session.status === "success" || session.status === "stopped") {
+    redirect(`/session/${id}/debrief`);
+  }
 
   const persona = await getPersonaById(session.personaId);
   const scenario = await getScenarioById(session.scenarioId);

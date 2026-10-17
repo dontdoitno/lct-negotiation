@@ -33,7 +33,7 @@ export async function loadCases(userId: string): Promise<CaseBase[]> {
 
   const finished = await prisma.session.findMany({
     // Тест-прогоны администратора в пользовательскую статистику не идут.
-    where: { userId, isTestRun: false, status: { in: ["success", "failed", "timeout"] } },
+    where: { userId, isTestRun: false, status: { in: ["success", "failed", "timeout", "stopped"] } },
     select: { personaId: true, state: true },
   });
 
