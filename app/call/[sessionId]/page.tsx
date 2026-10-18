@@ -30,6 +30,9 @@ export default function CallPage() {
   // Завершение идёт: кнопка не должна срабатывать второй раз, пока мы
   // закрываем сессию на сервере.
   const [finishing, setFinishing] = useState(false);
+  // Узкий экран: сценарий и метрики не помещаются рядом со звонком, поэтому
+  // открываются поверх по кнопке. На широком экране не используется.
+  const [mobilePanel, setMobilePanel] = useState<"scenario" | "metrics" | null>(null);
   // Запрос текущего хода. Нужен, чтобы оборвать его при завершении: иначе
   // ответ модели дописывал ход в уже закрытую сессию.
   const turnAbort = useRef<AbortController | null>(null);
@@ -188,9 +191,44 @@ export default function CallPage() {
     }
   }
 
+  const goalsList = s.goals.length
+    ? s.goals
+    : scenario.playerGoals.map((g) => ({ id: g.id, text: g.text, done: false, progress: 0 }));
+
+  /** Сценарий, цели и транскрипт. Левая колонка на широком экране. */
+  const scenarioPanel = (
+    <>
+      <div className="flex max-h-[45%] shrink-0 flex-col gap-2 overflow-y-auto border-b-[1.5px] border-dashed border-border p-[18px]">
+        <div className="label-case text-[11px] text-secondary">Сценарий</div>
+        <div className="text-base leading-snug">{scenario.context}</div>
+        <div className="label-case mt-1.5 text-[11px] text-secondary">Ваша цель</div>
+        <ul className="flex flex-col gap-1.5">
+          {goalsList.map((g) => (
+            <li key={g.id} className={`flex items-start gap-2 text-[15px] leading-snug ${g.done ? "text-disabled" : ""}`}>
+              <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-border-strong text-[11px] ${g.done ? "bg-border-strong text-white" : ""}`}>
+                {g.done ? "✓" : ""}
+              </span>
+              {g.text}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="label-case px-[18px] pb-1.5 pt-3.5 text-[11px] text-secondary">Транскрипт</div>
+      <CallTranscript items={s.transcript} npcName={persona.displayName} activeId={s.streamingNpcId} />
+    </>
+  );
+
+  /** Оценка хода и живые метрики. Правая колонка на широком экране. */
+  const metricsPanel = (
+    <>
+      <TurnFeedbackCard item={lastPlayer} pending={s.sending && !lastPlayer?.rationale} />
+      <LiveMetrics state={s.state} deltas={s.deltas} deltaSeq={s.deltaSeq} turn={s.turn} />
+    </>
+  );
+
   // В тест-прогоне тот же экран, но с плашкой сверху и панелью отладки справа.
   const screen = (
-    <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-surface text-primary">
+    <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-surface text-primary lg:grid-rows-[auto_minmax(0,1fr)]">
       <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b-[1.5px] border-border-strong px-6 py-2.5">
         <span className={`h-2 w-2 rounded-full ${ended ? "bg-disabled" : "rec-dot bg-accent-bg"}`} />
         <h1 className="text-[19px] font-bold leading-tight">{scenario.title}</h1>
@@ -217,26 +255,11 @@ export default function CallPage() {
         </button>
       </header>
 
-      <div className="grid min-h-0 grid-cols-[320px_minmax(0,1fr)_340px]">
-        {/* Left: case + transcript */}
-        <aside className="flex min-h-0 flex-col border-r-[1.5px] border-border-strong">
-          <div className="flex max-h-[45%] shrink-0 flex-col gap-2 overflow-y-auto border-b-[1.5px] border-dashed border-border p-[18px]">
-            <div className="label-case text-[11px] text-secondary">Сценарий</div>
-            <div className="text-base leading-snug">{scenario.context}</div>
-            <div className="label-case mt-1.5 text-[11px] text-secondary">Ваша цель</div>
-            <ul className="flex flex-col gap-1.5">
-              {(s.goals.length ? s.goals : scenario.playerGoals.map((g) => ({ id: g.id, text: g.text, done: false, progress: 0 }))).map((g) => (
-                <li key={g.id} className={`flex items-start gap-2 text-[15px] leading-snug ${g.done ? "text-disabled" : ""}`}>
-                  <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-border-strong text-[11px] ${g.done ? "bg-border-strong text-white" : ""}`}>
-                    {g.done ? "✓" : ""}
-                  </span>
-                  {g.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="label-case px-[18px] pb-1.5 pt-3.5 text-[11px] text-secondary">Транскрипт</div>
-          <CallTranscript items={s.transcript} npcName={persona.displayName} activeId={s.streamingNpcId} />
+      {/* Колонки только с широкого экрана: 320 и 340 пикселей по краям не
+          помещаются на телефоне, и центр со вводом уезжал за край. */}
+      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
+        <aside className="hidden min-h-0 flex-col border-r-[1.5px] border-border-strong lg:flex">
+          {scenarioPanel}
         </aside>
 
         {/* Center: call window + input */}
@@ -301,12 +324,25 @@ export default function CallPage() {
           {s.error && <p className="text-[13px] text-accent">Ошибка: {s.error}</p>}
         </main>
 
-        {/* Right: per-turn feedback + live metrics */}
-        <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto border-l-[1.5px] border-border-strong px-5 py-[18px]">
-          <TurnFeedbackCard item={lastPlayer} pending={s.sending && !lastPlayer?.rationale} />
-          <LiveMetrics state={s.state} deltas={s.deltas} deltaSeq={s.deltaSeq} turn={s.turn} />
+        <aside className="hidden min-h-0 flex-col gap-3 overflow-y-auto border-l-[1.5px] border-border-strong px-5 py-[18px] lg:flex">
+          {metricsPanel}
         </aside>
       </div>
+
+      {/* Узкий экран: две кнопки вместо боковых колонок. */}
+      <div className="flex shrink-0 gap-2 border-t-[1.5px] border-border-strong px-4 py-2 lg:hidden">
+        <MobileTab label="Сценарий" onClick={() => setMobilePanel("scenario")} />
+        <MobileTab label="Метрики" onClick={() => setMobilePanel("metrics")} />
+      </div>
+
+      {mobilePanel && (
+        <MobileSheet
+          title={mobilePanel === "scenario" ? "Сценарий и транскрипт" : "Метрики разговора"}
+          onClose={() => setMobilePanel(null)}
+        >
+          {mobilePanel === "scenario" ? scenarioPanel : metricsPanel}
+        </MobileSheet>
+      )}
     </div>
   );
 
@@ -323,6 +359,65 @@ export default function CallPage() {
       <div className="flex min-h-0 flex-1">
         {screen}
         <TestRunPanel scenarioId={persona.id} state={s} />
+      </div>
+    </div>
+  );
+}
+
+/** Кнопка нижней полосы на узком экране. */
+function MobileTab({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex-1 rounded-md border-[1.5px] border-border px-3 py-2 text-[15px] text-primary motion-safe:transition-colors hover:border-border-strong"
+    >
+      {label}
+    </button>
+  );
+}
+
+/**
+ * Выдвижная панель на узком экране.
+ *
+ * Боковые колонки звонка заданы в пикселях и на телефоне не помещаются рядом с
+ * центром, поэтому их содержимое показывается поверх. Панель занимает не весь
+ * экран: сверху остаётся полоса, по которой видно, что звонок продолжается, и
+ * по которой её можно закрыть.
+ */
+function MobileSheet({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      className="fixed inset-0 z-40 flex flex-col justify-end bg-black/40 lg:hidden"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[80vh] min-h-0 flex-col rounded-t-2xl border-t-[1.5px] border-border-strong bg-surface"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <span className="label-case text-[11px] text-secondary">{title}</span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Закрыть"
+            className="rounded-md px-2 py-1 text-[15px] text-secondary hover:text-primary"
+          >
+            Закрыть
+          </button>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
     </div>
   );

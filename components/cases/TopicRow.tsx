@@ -76,7 +76,7 @@ export function TopicRow({ topic, items }: { topic: string; items: CaseTileData[
 
       <ul
         ref={scroller}
-        className={`grid auto-cols-[calc((100%-2rem)/3)] grid-flow-col gap-4 ${
+        className={`grid auto-cols-[85%] grid-flow-col gap-4 sm:auto-cols-[calc((100%-1rem)/2)] lg:auto-cols-[calc((100%-2rem)/3)] ${
           scrollable
             ? "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             : ""
