@@ -108,8 +108,21 @@ export function toPersona(def: ScenarioDefinition): Persona {
     exitLine: def.exitLine,
     hiddenFailure: false,
     behaviorNote: def.characterNote,
-    trigger: def.context[def.context.length - 1],
+    trigger: splitContext(def.context).trigger,
   };
+}
+
+/**
+ * Разбирает контекст на описание ситуации и триггер.
+ *
+ * Последняя строка это триггер, его брифинг печатает отдельной жирной строкой.
+ * Если строка всего одна, триггера нет: иначе описание ситуации осталось бы
+ * пустым.
+ */
+export function splitContext(lines: string[]): { situation: string; trigger?: string } {
+  const clean = lines.map((l) => l.trim()).filter(Boolean);
+  if (clean.length <= 1) return { situation: clean.join(" ") };
+  return { situation: clean.slice(0, -1).join(" "), trigger: clean[clean.length - 1] };
 }
 
 export function toScenario(def: ScenarioDefinition): Scenario {
@@ -131,7 +144,7 @@ export function toScenario(def: ScenarioDefinition): Scenario {
     // игрок», поэтому роли здесь схлопываются в прежние два значения.
     initiator: def.initiator === "npc" ? "employee" : "manager",
     playerRole: def.playerRole,
-    context: def.context.join(" "),
+    context: splitContext(def.context).situation,
     playerGoals,
     turnLimit: def.turnLimit,
     personas: [def.id],

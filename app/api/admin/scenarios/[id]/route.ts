@@ -7,6 +7,7 @@ import {
   updateScenario,
 } from "@/lib/scenarios/repository";
 import { ScenarioDraft, ScenarioStatus } from "@/lib/scenarios/types";
+import { checkDraftShape } from "@/lib/scenarios/shape";
 
 async function guard() {
   return (await isAdmin()) ? null : NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -36,7 +37,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (denied) return denied;
 
   const { id } = await params;
-  const draft = (await req.json()) as ScenarioDraft;
+  const payload = await req.json().catch(() => null);
+  const shapeError = checkDraftShape(payload);
+  if (shapeError) return NextResponse.json({ error: shapeError }, { status: 400 });
+  const draft = payload as ScenarioDraft;
   try {
     return NextResponse.json({ scenario: await updateScenario(id, draft) });
   } catch (error) {

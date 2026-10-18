@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Text, Heading } from "@astryxdesign/core/Text";
 import { Button } from "@astryxdesign/core/Button";
@@ -22,7 +22,14 @@ import {
 } from "@/lib/scenarios/draft";
 import { renderPrompt } from "@/lib/scenarios/promptRender";
 import { AvatarPicker } from "./AvatarPicker";
+import { ScenarioPreview } from "./ScenarioPreview";
+import {
+  parseScenarioFile,
+  scenarioFileName,
+  toScenarioFile,
+} from "@/lib/scenarios/transfer";
 import { DIFFICULTY_PRESETS, DOMAIN_OPTIONS } from "@/lib/scenarios/presets";
+import { SITUATION_PRESETS, applySituationPreset } from "@/lib/scenarios/situations";
 import {
   DifficultyPreset,
   METRIC_LEVEL_LABEL,
@@ -94,6 +101,9 @@ export function ScenarioEditor({
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [active, setActive] = useState<SectionId>("context");
   const [showIssues, setShowIssues] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [manualPrompt, setManualPrompt] = useState(initial.customPrompt !== null);
 
@@ -115,6 +125,36 @@ export function ScenarioEditor({
       ? ({ type: "error" as const, message: invalid.get(field) })
       : undefined;
   const prompt = useMemo(() => renderPrompt(promptTemplate, draft), [promptTemplate, draft]);
+
+  /** Выгрузка сценария файлом: через ссылку на Blob, без обращения к серверу. */
+  function exportFile() {
+    const blob = new Blob([JSON.stringify(toScenarioFile(draft, new Date()), null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = scenarioFileName(draft);
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Загрузка файла. Содержимое не подставляется молча: сначала разбор, и при
+   * любой беде администратор видит причину, а форма остаётся прежней.
+   */
+  async function importFile(file: File) {
+    setImportError(null);
+    const result = parseScenarioFile(await file.text());
+    if (!result.ok) {
+      setImportError(result.error);
+      return;
+    }
+    // Название и статус остаются от текущей записи: файл описывает содержание
+    // сценария, а не то, где он лежит и опубликован ли.
+    setDraft(result.draft);
+    setShowIssues(false);
+  }
 
   const patch = useCallback((next: Partial<ScenarioDraft>) => {
     setDraft((prev) => ({ ...prev, ...next }));
@@ -266,6 +306,27 @@ export function ScenarioEditor({
           <Badge label={status === "published" ? "Опубликован" : "Черновик"} />
           <SaveIndicator state={saveState} dirty={dirty} />
           <Button variant="secondary" size="sm" label="Сохранить черновик" onClick={() => void save("draft")} />
+          <Button variant="secondary" size="sm" label="Превью" onClick={() => setPreviewOpen(true)} />
+          <Button variant="secondary" size="sm" label="Выгрузить" onClick={exportFile} />
+          <Button
+            variant="secondary"
+            size="sm"
+            label="Загрузить"
+            onClick={() => fileInput.current?.click()}
+          />
+          <input
+            ref={fileInput}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void importFile(file);
+              // Сбрасываем значение, иначе повторный выбор того же файла не
+              // вызовет событие и загрузка «не сработает».
+              e.target.value = "";
+            }}
+          />
           <Button variant="secondary" size="sm" label="Тест-прогон" onClick={() => void testRun()} />
           <Button variant="primary" size="sm" label="Опубликовать" onClick={() => void publish()} />
         </div>
@@ -279,6 +340,14 @@ export function ScenarioEditor({
           </Text>
         </div>
         )}
+
+      {importError && (
+        <div className="mt-2 rounded-md border-[1.5px] border-metric-resistance px-3 py-2">
+          <Text type="supporting" display="block" weight="bold">
+            Файл не загрузился: {importError}
+          </Text>
+        </div>
+      )}
 
       {showIssues && issues.length > 0 && (
         <div className="mt-2 rounded-md border-[1.5px] border-metric-resistance px-3 py-2">
@@ -325,6 +394,13 @@ export function ScenarioEditor({
 
         <div className="flex min-w-0 flex-1 flex-col gap-8">
           <Section id="context" title="1. Контекст">
+            <SituationPicker
+              onPick={(id) => {
+                setDraft((prev) => applySituationPreset(prev, id));
+                setShowIssues(false);
+              }}
+            />
+
             <ComboBox
               label="Сфера"
               value={draft.domain}
@@ -682,6 +758,8 @@ export function ScenarioEditor({
           </Section>
         </div>
       </div>
+
+      {previewOpen && <ScenarioPreview draft={draft} onClose={() => setPreviewOpen(false)} />}
     </div>
   );
 }
@@ -709,6 +787,67 @@ function Section({
       )}
       <div className="mt-4 flex flex-col gap-4 rounded-lg border-[1.5px] border-border bg-surface p-4">{children}</div>
     </section>
+  );
+}
+
+/**
+ * Выбор готовой ситуации. Заполняет обстановку: роли, контекст, цели, слои
+ * интересов, ресурсы и ограничения.
+ *
+ * Характер собеседника пресет не трогает: его задаёт отдельный выбор тона во
+ * второй секции. Поэтому одна ситуация играется всеми тремя характерами, и из
+ * семи заготовок получается двадцать один разговор.
+ */
+function SituationPicker({ onPick }: { onPick: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border-[1.5px] border-dashed border-border px-4 py-3">
+        <Text type="supporting" color="secondary">
+          Можно начать с готовой ситуации и поправить её под себя.
+        </Text>
+        <Button variant="secondary" size="sm" label="Выбрать ситуацию" onClick={() => setOpen(true)} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border-[1.5px] border-border px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <Text type="label" color="secondary">
+          Готовые ситуации
+        </Text>
+        <Button variant="ghost" size="sm" label="Свернуть" onClick={() => setOpen(false)} />
+      </div>
+      <ul className="flex flex-col gap-1.5">
+        {SITUATION_PRESETS.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              onClick={() => {
+                onPick(p.id);
+                setOpen(false);
+              }}
+              className="w-full rounded-md border border-border px-3 py-2 text-left motion-safe:transition-colors hover:border-border-strong hover:bg-surface"
+            >
+              <span className="flex flex-wrap items-baseline gap-2">
+                <Text weight="bold">{p.label}</Text>
+                <span className="rounded-full border border-border px-2 text-[11px] text-secondary">
+                  {p.direction}
+                </span>
+              </span>
+              <Text type="supporting" color="secondary" display="block">
+                {p.hint}
+              </Text>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <Text type="supporting" color="secondary" display="block">
+        Ситуация заменит контекст, роли, цели и слои интересов. Характер и матрица реакций останутся.
+      </Text>
+    </div>
   );
 }
 
