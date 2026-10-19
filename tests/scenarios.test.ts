@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildSystemPrompt } from "@/lib/scenarios/prompt";
-import { cleanDraft, validateDraft } from "@/lib/scenarios/draft";
-import { toPersona, toScenario } from "@/lib/scenarios/adapters";
+import { cleanDraft, emptyDraft, validateDraft } from "@/lib/scenarios/draft";
+import { parseScenarioFile, scenarioFileName, toScenarioFile } from "@/lib/scenarios/transfer";
+import { SITUATION_PRESETS, applySituationPreset } from "@/lib/scenarios/situations";
+import { checkDraftShape } from "@/lib/scenarios/shape";
+import { splitContext, toPersona, toScenario } from "@/lib/scenarios/adapters";
+import { hiddenPreview, playerPreview } from "@/lib/scenarios/preview";
 import { TONE_PRESETS } from "@/lib/scenarios/presets";
 import { ScenarioDefinition } from "@/lib/scenarios/types";
 import { applyTurn, createInitialState } from "@/lib/engine/state";
@@ -148,5 +152,207 @@ describe("валидация черновика", () => {
 
   it("полностью заполненный черновик проходит проверку", () => {
     expect(validateDraft(makeScenario())).toEqual([]);
+  });
+});
+
+// --- Превью сценария в конструкторе ----------------------------------------
+
+describe("разбор контекста на ситуацию и триггер", () => {
+  it("последняя строка уходит в триггер и не повторяется в описании", () => {
+    const { situation, trigger } = splitContext([
+      "Команда работает над проектом.",
+      "Ника впервые сама решилась попросить о встрече.",
+    ]);
+    expect(trigger).toBe("Ника впервые сама решилась попросить о встрече.");
+    expect(situation).toBe("Команда работает над проектом.");
+    expect(situation).not.toContain("впервые");
+  });
+
+  it("единственная строка остаётся описанием, триггера нет", () => {
+    const { situation, trigger } = splitContext(["Одна строка контекста."]);
+    expect(situation).toBe("Одна строка контекста.");
+    expect(trigger).toBeUndefined();
+  });
+
+  it("пустые строки не создают пустой триггер", () => {
+    const { situation, trigger } = splitContext(["Ситуация.", "   ", ""]);
+    expect(situation).toBe("Ситуация.");
+    expect(trigger).toBeUndefined();
+  });
+});
+
+describe("превью сценария", () => {
+  it("не раскрывает игроку ни характер, ни скрытые интересы", () => {
+    const draft = makeScenario({
+      hiddenLayers: [{ text: "Боюсь не справиться и подвести команду." }],
+      npcBackstory: "Ты не вывозишь объём и боишься сказать об этом прямо.",
+    });
+    const shown = JSON.stringify(playerPreview(draft));
+
+    expect(shown).not.toContain("Боюсь не справиться");
+    expect(shown).not.toContain("Ты не вывозишь");
+    expect(shown).not.toContain("anxious");
+  });
+
+  it("считает стартовые метрики и пороги доверия так же, как движок", () => {
+    const draft = makeScenario({
+      hiddenLayers: [{ text: "Слой один" }, { text: "Слой два" }],
+      startMetricsExact: { T: 70 },
+    });
+    const hidden = hiddenPreview(draft);
+
+    // Точное число перекрывает уровень, остальные метрики берутся из уровней.
+    expect(hidden.startMetrics.find((m) => m.code === "T")?.value).toBe(70);
+    // Ряд порогов доверия совпадает с рядом в адаптере.
+    expect(hidden.layers.map((l) => l.trustThreshold)).toEqual([40, 55]);
+  });
+
+  it("совпадает с тем, что получит движок из того же черновика", () => {
+    const draft = makeScenario();
+    const player = playerPreview(draft);
+    const scenario = toScenario(makeScenario());
+    const persona = toPersona(makeScenario());
+
+    expect(player.situation).toBe(scenario.context);
+    expect(player.trigger).toBe(persona.trigger);
+    expect(player.characterNote).toBe(persona.behaviorNote);
+  });
+});
+
+// --- Перенос сценария файлом -----------------------------------------------
+
+describe("выгрузка и загрузка сценария", () => {
+  it("переживает круг: содержание сценария возвращается без потерь", () => {
+    // Берём именно черновик: перенос работает с ним, а не с записью в базе.
+    const draft = {
+      ...emptyDraft(),
+      title: "Спор отделов за ресурс",
+      npcName: "Марина",
+      context: ["Два отдела спорят за одного разработчика.", "Запуск кампании под угрозой."],
+      hiddenLayers: [{ text: "Боится не успеть к запуску." }],
+      turnLimit: 12,
+    };
+    const raw = JSON.stringify(toScenarioFile(draft, new Date("2026-10-17T12:00:00Z")));
+    const result = parseScenarioFile(raw);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.draft).toEqual(draft);
+  });
+
+  it("не переносит служебные поля записи: id, статус и даты", () => {
+    const draft = makeScenario({ title: "Чужой сценарий" });
+    const raw = JSON.stringify(toScenarioFile(draft, new Date("2026-10-17T12:00:00Z")));
+    const result = parseScenarioFile(raw);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // Загрузка файла не должна подменять запись, в которую её загружают,
+    // иначе импорт в открытый сценарий увёл бы его идентификатор.
+    for (const key of ["id", "status", "createdAt", "updatedAt"]) {
+      expect(key in result.draft).toBe(false);
+    }
+  });
+
+  it("недостающие поля берёт по умолчанию, а не роняет форму", () => {
+    const raw = JSON.stringify({
+      format: "arena-scenario",
+      version: 1,
+      exportedAt: "2026-10-17T12:00:00Z",
+      scenario: { title: "Только название" },
+    });
+    const result = parseScenarioFile(raw);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.draft.title).toBe("Только название");
+      expect(result.draft.turnLimit).toBe(emptyDraft().turnLimit);
+      expect(Array.isArray(result.draft.context)).toBe(true);
+    }
+  });
+
+  it("отказывается от чужого файла и объясняет причину", () => {
+    for (const raw of ["не json", "{}", JSON.stringify({ format: "что-то другое" })]) {
+      const result = parseScenarioFile(raw);
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("не принимает файл более новой версии формата", () => {
+    const raw = JSON.stringify({ format: "arena-scenario", version: 99, scenario: {} });
+    const result = parseScenarioFile(raw);
+    expect(result.ok).toBe(false);
+  });
+
+  it("имя файла не содержит пробелов и расширение на месте", () => {
+    expect(scenarioFileName(makeScenario({ title: "Спор отделов за ресурс" }))).toMatch(/^[^\s]+\.json$/);
+    expect(scenarioFileName(makeScenario({ title: "" }))).toBe("scenario.json");
+  });
+});
+
+// --- Готовые ситуации ------------------------------------------------------
+
+describe("пресеты ситуаций", () => {
+  it("каждая ситуация даёт сценарий, который проходит проверку перед публикацией", () => {
+    for (const preset of SITUATION_PRESETS) {
+      const draft = applySituationPreset(emptyDraft(), preset.id);
+      const issues = validateDraft(cleanDraft(draft));
+      expect(issues, `${preset.id}: ${issues.map((i) => i.message).join("; ")}`).toEqual([]);
+    }
+  });
+
+  it("ситуация не трогает характер: его задаёт отдельный выбор тона", () => {
+    const base = emptyDraft();
+    const draft = applySituationPreset(base, "resource-conflict");
+
+    expect(draft.tone).toBe(base.tone);
+    expect(draft.temperament).toBe(base.temperament);
+    expect(draft.characterNote).toBe(base.characterNote);
+    expect(draft.reactions).toEqual(base.reactions);
+  });
+
+  it("ситуация действительно заменяет обстановку", () => {
+    const draft = applySituationPreset(emptyDraft(), "resource-conflict");
+
+    expect(draft.npcRole).toBe("Руководитель отдела маркетинга");
+    expect(draft.hiddenLayers.length).toBeGreaterThanOrEqual(2);
+    expect(draft.context.join(" ")).toContain("два разработчика");
+  });
+
+  it("неизвестный идентификатор оставляет черновик нетронутым", () => {
+    const base = emptyDraft();
+    expect(applySituationPreset(base, "нет-такой")).toEqual(base);
+  });
+
+  it("покрыты все три направления разговора", () => {
+    const directions = new Set(SITUATION_PRESETS.map((p) => p.direction));
+    expect([...directions].sort()).toEqual(["вбок", "вверх", "вниз"]);
+  });
+});
+
+// --- Защита роутов админки от запроса не той формы -------------------------
+
+describe("проверка формы черновика на входе в API", () => {
+  it("пропускает полный черновик", () => {
+    expect(checkDraftShape(emptyDraft())).toBeNull();
+    expect(checkDraftShape(applySituationPreset(emptyDraft(), "handover"))).toBeNull();
+  });
+
+  it("отвергает не объект", () => {
+    for (const bad of [null, undefined, "строка", 42, []]) {
+      expect(checkDraftShape(bad)).not.toBeNull();
+    }
+  });
+
+  it("называет недостающие поля, а не падает", () => {
+    const msg = checkDraftShape({ title: "x" });
+    expect(msg).toContain("нет полей");
+  });
+
+  it("ловит подмену типа у списков и чисел", () => {
+    expect(checkDraftShape({ ...emptyDraft(), hiddenLayers: "не список" })).toContain("списком");
+    expect(checkDraftShape({ ...emptyDraft(), turnLimit: "много" })).toContain("числом");
+    expect(checkDraftShape({ ...emptyDraft(), sensitivity: NaN })).toContain("числом");
   });
 });

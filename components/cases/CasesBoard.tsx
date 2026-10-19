@@ -14,6 +14,7 @@ import { useFlowState } from "@/lib/flow/store";
 import { DomainRail } from "./DomainRail";
 import { TopicRow } from "./TopicRow";
 import { FilterState, EMPTY_FILTERS } from "./filters";
+import { useIsNarrow } from "@/lib/ui/useIsNarrow";
 import { MetricRadar } from "@/components/ui/MetricRadar";
 import { MetricCode } from "@/lib/engine/types";
 
@@ -32,7 +33,13 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
   const flow = useFlowState();
   const router = useRouter();
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const [railCollapsed, setRailCollapsed] = useState(false);
+  // На узком экране раскрытая колонка сфер занимает половину ширины, поэтому
+  // там она по умолчанию свёрнута. Ручной выбор пользователя важнее: как только
+  // он нажал на сворачивание, дальше решает он.
+  const narrow = useIsNarrow();
+  const [railChoice, setRailChoice] = useState<boolean | null>(null);
+  const railCollapsed = railChoice ?? narrow;
+  const setRailCollapsed = (next: boolean) => setRailChoice(next);
 
   const finished = useMemo(() => cases.filter((c) => c.attempts > 0), [cases]);
   const hasProgress = finished.length > 0;
@@ -141,11 +148,11 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
         value={filters}
         onChange={setFilters}
         collapsed={railCollapsed}
-        onToggle={() => setRailCollapsed((v) => !v)}
+        onToggle={() => setRailCollapsed(!railCollapsed)}
       />
 
       {/* Своя область прокрутки, чтобы колонка со сферами оставалась на месте. */}
-      <main className="h-screen flex-1 overflow-y-auto scroll-smooth px-10 py-8">
+      <main className="h-screen flex-1 overflow-y-auto scroll-smooth px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <div className="mx-auto flex max-w-wide flex-col gap-8">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>

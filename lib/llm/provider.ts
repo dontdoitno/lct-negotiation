@@ -1,3 +1,32 @@
+/**
+ * Потолок ожидания ответа модели.
+ *
+ * Без него зависший провайдер держит ход открытым до лимита функции, а это сто
+ * двадцать секунд с замершим экраном. Отказ по таймауту обрабатывается тем же
+ * путём, что и любая другая ошибка: актёр делает вторую попытку и берёт
+ * заготовленную реплику.
+ */
+const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS) || 20000;
+
+/**
+ * fetch с таймаутом. Сигнал снимается в finally, иначе таймер держал бы
+ * процесс живым после успешного ответа.
+ */
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(`Модель не ответила за ${LLM_TIMEOUT_MS} мс`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export interface Message {
   role: "system" | "user" | "assistant";
   content: string;
@@ -31,7 +60,7 @@ class OpenRouterProvider implements LLMProvider {
   }
 
   async complete(messages: Message[], opts: CompleteOptions = {}): Promise<string> {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({
@@ -48,7 +77,7 @@ class OpenRouterProvider implements LLMProvider {
   }
 
   async *stream(messages: Message[], opts: CompleteOptions = {}): AsyncIterable<string> {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({
@@ -139,7 +168,7 @@ class YandexCloudProvider implements LLMProvider {
   }
 
   async complete(messages: Message[], opts: CompleteOptions = {}): Promise<string> {
-    const res = await fetch(YANDEX_COMPLETION_URL, {
+    const res = await fetchWithTimeout(YANDEX_COMPLETION_URL, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(this.body(messages, opts, false)),
@@ -154,7 +183,7 @@ class YandexCloudProvider implements LLMProvider {
   // OpenAI-style SSE) — we diff against the previous line to yield chunks
   // in the same incremental shape the rest of the app expects.
   async *stream(messages: Message[], opts: CompleteOptions = {}): AsyncIterable<string> {
-    const res = await fetch(YANDEX_COMPLETION_URL, {
+    const res = await fetchWithTimeout(YANDEX_COMPLETION_URL, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(this.body(messages, opts, true)),
@@ -269,7 +298,7 @@ class YandexResponsesProvider implements LLMProvider {
   }
 
   async complete(messages: Message[], opts: CompleteOptions = {}): Promise<string> {
-    const res = await fetch(YANDEX_RESPONSES_URL, {
+    const res = await fetchWithTimeout(YANDEX_RESPONSES_URL, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify(this.body(messages, opts)),

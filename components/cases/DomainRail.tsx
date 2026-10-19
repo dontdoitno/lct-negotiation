@@ -58,7 +58,7 @@ export function DomainRail({
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-body px-5 py-6">
+    <aside className="sticky top-0 flex h-screen w-56 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-body px-4 py-6 sm:w-64 sm:px-5">
       <div className="flex items-center justify-between">
         <Text type="label" color="secondary">
           {CASES.railTitle}

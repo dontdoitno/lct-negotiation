@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
 import { createScenario, listScenarios } from "@/lib/scenarios/repository";
 import { ScenarioDraft } from "@/lib/scenarios/types";
+import { checkDraftShape } from "@/lib/scenarios/shape";
 
 /** Каждый роут контура проверяет роль сам: защита макета не распространяется на API. */
 async function guard() {
@@ -18,7 +19,11 @@ export async function POST(req: NextRequest) {
   const denied = await guard();
   if (denied) return denied;
 
-  const draft = (await req.json()) as ScenarioDraft;
+  const payload = await req.json().catch(() => null);
+  const shapeError = checkDraftShape(payload);
+  if (shapeError) return NextResponse.json({ error: shapeError }, { status: 400 });
+  const draft = payload as ScenarioDraft;
+
   try {
     const created = await createScenario(draft);
     return NextResponse.json({ scenario: created }, { status: 201 });
