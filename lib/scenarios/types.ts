@@ -1,5 +1,6 @@
 import { ActionCode, MetricCode } from "@/lib/engine/types";
 import { AvatarId } from "./avatars";
+import { GenerationId } from "./generations";
 
 /**
  * Сценарий как данные. Раньше ситуация и собеседник лежали в двух файлах
@@ -8,7 +9,15 @@ import { AvatarId } from "./avatars";
  * сидами через тот же конструктор.
  */
 
-export type Tone = "aggressive" | "anxious" | "rational" | "custom";
+export type Tone =
+  | "aggressive"
+  | "anxious"
+  | "rational"
+  | "manipulative"
+  | "passive_aggressive"
+  | "burnt_out"
+  | "conformist"
+  | "custom";
 export type ScenarioStatus = "draft" | "published";
 export type DifficultyPreset = "easy" | "normal" | "hard";
 /** Кто говорит первым. Подписи берутся из ролей, а не зашиты в код. */
@@ -61,6 +70,8 @@ export interface ScenarioDefinition {
   npcBackstory: string;
   /** Видео-аватар из /public/avatars. Пусто — круг с буквой. */
   avatar: AvatarId | null;
+  /** Поколение собеседника. Пусто — блок поколения в промт не уходит. */
+  generation: GenerationId | null;
   tone: Tone;
   characterNote: string;
   temperament: string;

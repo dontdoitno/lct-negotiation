@@ -50,6 +50,9 @@ model ScenarioDefinition {
   npcPosition   String
   /// Видео-аватар из /public/avatars. Пусто — показывается круг с буквой.
   avatar        String? // avatar-1 | avatar-2 | avatar-3
+  /// Поколение собеседника: контекст поверх характера. Пусто — блок поколения
+  /// в промт не уходит, разговор работает как раньше.
+  generation    String? // genx | millennial | zoomer
   tone          String // aggressive | anxious | rational | custom
   characterNote String // расшифровка характера для брифинга
   temperament   String

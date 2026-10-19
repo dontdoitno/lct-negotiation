@@ -4,12 +4,12 @@ export interface TurnLogEntry {
   actions: ActionCode[];
   npcResistanceBefore: number;
   npcResistanceAfter: number;
-  personaType: "aggressive" | "anxious" | "rational";
+  personaType: "aggressive" | "anxious" | "rational" | "manipulative" | "passive_aggressive" | "burnt_out" | "conformist";
   adaptivenessAfter: number;
 }
 
 export interface SessionOutcomeLog {
-  personaType: "aggressive" | "anxious" | "rational";
+  personaType: "aggressive" | "anxious" | "rational" | "manipulative" | "passive_aggressive" | "burnt_out" | "conformist";
   finalR: number;
   finalC: number;
   turns: TurnLogEntry[];
