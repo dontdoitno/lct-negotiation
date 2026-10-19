@@ -15,6 +15,10 @@ const TONE_LABELS: Record<Tone, string> = {
   aggressive: "Агрессивный",
   anxious: "Тревожный",
   rational: "Рациональный",
+  manipulative: "Манипулятивный",
+  passive_aggressive: "Пассивно-агрессивный",
+  burnt_out: "Выгоревший",
+  conformist: "Конформист",
   custom: "Свой",
 };
 

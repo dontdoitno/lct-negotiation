@@ -93,7 +93,14 @@ export type ReactionDelta = Partial<Record<MetricCode, number>>;
 export interface Persona {
   id: string;
   scenarioId: string;
-  type: "aggressive" | "anxious" | "rational";
+  type:
+    | "aggressive"
+    | "anxious"
+    | "rational"
+    | "manipulative"
+    | "passive_aggressive"
+    | "burnt_out"
+    | "conformist";
   typeLabel: string;
   displayName: string;
   position: string;

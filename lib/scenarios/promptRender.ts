@@ -1,4 +1,5 @@
 import { ACTION_CODES, ActionCode, MetricCode } from "@/lib/engine/types";
+import { GENERATION_PRESETS } from "./generations";
 import { ACTION_BADGE } from "@/lib/flow/copy";
 import { METRIC_META } from "@/lib/engine/labels";
 import { TONE_PRESETS } from "./presets";
@@ -89,6 +90,8 @@ const SLOTS: Record<string, (s: ScenarioDraft) => string> = {
   startA: (s) => METRIC_LEVEL_LABEL[s.startMetrics.A],
   // Нумерация продолжает общие правила из шаблона, их там шесть.
   behaviorRules: (s) => numbered(toneRules(s), 7),
+  generation: (s) =>
+    s.generation ? "\n" + GENERATION_PRESETS[s.generation].promptBlock : "",
   resistanceHigh: (s) => resistanceScale(s).high,
   resistanceMedium: (s) => resistanceScale(s).medium,
   resistanceLow: (s) => resistanceScale(s).low,

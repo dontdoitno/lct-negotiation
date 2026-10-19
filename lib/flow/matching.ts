@@ -1,7 +1,14 @@
 import { MetricCode } from "@/lib/engine/types";
 import { QuizAnswers } from "./types";
 
-export type PersonaType = "rational" | "anxious" | "aggressive";
+export type PersonaType =
+  | "rational"
+  | "anxious"
+  | "aggressive"
+  | "manipulative"
+  | "passive_aggressive"
+  | "burnt_out"
+  | "conformist";
 
 const TOPIC_TO_SCENARIO: Record<string, string> = {
   overload: "s1-overload",
@@ -57,6 +64,14 @@ const TRAINS: Record<PersonaType, MetricCode[]> = {
   rational: ["C", "S"],
   anxious: ["T", "I"],
   aggressive: ["R", "A"],
+  // Торгующийся наказывает за уступки без критериев и за размытые договорённости.
+  manipulative: ["C", "A"],
+  // Подтекст виден только тому, кто дошёл до настоящей причины.
+  passive_aggressive: ["I", "T"],
+  // Истощённому нужны доверие и хоть один выполнимый шаг.
+  burnt_out: ["T", "S"],
+  // За «мы считаем» прячется личный интерес, и его надо достать.
+  conformist: ["I", "C"],
 };
 
 const METRIC_REASON: Record<MetricCode, string> = {
@@ -123,4 +138,8 @@ const TYPE_DATIVE: Record<PersonaType, string> = {
   rational: "рациональным",
   anxious: "тревожным",
   aggressive: "агрессивным",
+  manipulative: "манипулятивным",
+  passive_aggressive: "пассивно-агрессивным",
+  burnt_out: "выгоревшим",
+  conformist: "конформистом",
 };

@@ -8,7 +8,14 @@ export interface LevelCard {
   displayName: string;
   position: string;
   typeLabel: string;
-  type: "rational" | "anxious" | "aggressive";
+  type:
+    | "rational"
+    | "anxious"
+    | "aggressive"
+    | "manipulative"
+    | "passive_aggressive"
+    | "burnt_out"
+    | "conformist";
   bestStars: number;
   attempts: number;
   unlocked: boolean;
@@ -16,7 +23,15 @@ export interface LevelCard {
 
 // Onboarding order within a scenario: rational teaches the mechanic first,
 // anxious teaches reading the unsaid, aggressive demands holding ground.
-const TYPE_RANK: Record<LevelCard["type"], number> = { rational: 0, anxious: 1, aggressive: 2 };
+const TYPE_RANK: Record<LevelCard["type"], number> = {
+  rational: 0,
+  anxious: 1,
+  aggressive: 2,
+  manipulative: 3,
+  passive_aggressive: 4,
+  burnt_out: 5,
+  conformist: 6,
+};
 
 export async function getLevelMap(userId: string): Promise<LevelCard[]> {
   const levels = listLevels();

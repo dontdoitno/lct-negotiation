@@ -5,6 +5,10 @@ const ACCENT_BY_TYPE: Record<LevelCard["type"], string> = {
   aggressive: "var(--color-resistance)",
   anxious: "var(--color-adapt)",
   rational: "var(--color-insight)",
+  manipulative: "var(--color-resistance)",
+  passive_aggressive: "var(--color-adapt)",
+  burnt_out: "var(--color-ink-faint)",
+  conformist: "var(--color-insight)",
 };
 
 export function CaseCard({ level, index }: { level: LevelCard; index: number }) {

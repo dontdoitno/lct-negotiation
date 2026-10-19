@@ -202,6 +202,7 @@ export function ScenarioPreview({ draft, onClose }: { draft: ScenarioDraft; onCl
                 label="Предыстория в промт"
                 value={hidden.npcBackstory || "не задана"}
               />
+              <Row label="Поколение" value={hidden.generation} />
             </Block>
           </section>
         </div>

@@ -48,7 +48,15 @@ export interface Level {
 // Fixed onboarding order: rational -> anxious -> aggressive, per the spec's
 // pedagogical progression (learn the mechanic -> read the unsaid -> hold
 // your ground under pressure).
-const TYPE_ORDER: Record<Persona["type"], number> = { rational: 0, anxious: 1, aggressive: 2 };
+const TYPE_ORDER: Record<Persona["type"], number> = {
+  rational: 0,
+  anxious: 1,
+  aggressive: 2,
+  manipulative: 3,
+  passive_aggressive: 4,
+  burnt_out: 5,
+  conformist: 6,
+};
 
 export function listLevels(): Level[] {
   const scenarios = listScenarios();

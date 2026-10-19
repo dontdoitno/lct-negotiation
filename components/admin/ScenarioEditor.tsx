@@ -30,6 +30,7 @@ import {
 } from "@/lib/scenarios/transfer";
 import { DIFFICULTY_PRESETS, DOMAIN_OPTIONS } from "@/lib/scenarios/presets";
 import { SITUATION_PRESETS, applySituationPreset } from "@/lib/scenarios/situations";
+import { GENERATION_PRESETS, GenerationId } from "@/lib/scenarios/generations";
 import {
   DifficultyPreset,
   METRIC_LEVEL_LABEL,
@@ -68,6 +69,10 @@ const TONE_OPTIONS: { value: Tone; label: string }[] = [
   { value: "aggressive", label: "Агрессивный" },
   { value: "anxious", label: "Тревожный" },
   { value: "rational", label: "Рациональный" },
+  { value: "manipulative", label: "Манипулятивный" },
+  { value: "passive_aggressive", label: "Пассивно-агрессивный" },
+  { value: "burnt_out", label: "Выгоревший" },
+  { value: "conformist", label: "Конформист" },
   { value: "custom", label: "Свой" },
 ];
 
@@ -485,6 +490,11 @@ export function ScenarioEditor({
 
             <AvatarPicker value={draft.avatar} onChange={(next) => patch({ avatar: next })} />
 
+            <GenerationPicker
+              value={draft.generation}
+              onChange={(next) => patch({ generation: next })}
+            />
+
             <ChoiceRow
               label="Тон собеседника"
               options={TONE_OPTIONS}
@@ -787,6 +797,74 @@ function Section({
       )}
       <div className="mt-4 flex flex-col gap-4 rounded-lg border-[1.5px] border-border bg-surface p-4">{children}</div>
     </section>
+  );
+}
+
+/**
+ * Выбор поколения собеседника.
+ *
+ * Поколение не заменяет характер, а уточняет контекст: что человек ценит, чего
+ * боится и как говорит. Тревожный икс и тревожный зумер оба тревожные, но
+ * боятся разного. Поле необязательное: без него в промт просто не уходит блок
+ * поколения, и разговор работает как раньше.
+ */
+function GenerationPicker({
+  value,
+  onChange,
+}: {
+  value: GenerationId | null;
+  onChange: (next: GenerationId | null) => void;
+}) {
+  const chosen = value ? GENERATION_PRESETS[value] : null;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Text type="label" color="secondary" display="block">
+        Поколение
+      </Text>
+
+      <div className="flex flex-wrap gap-2">
+        {Object.values(GENERATION_PRESETS).map((g) => {
+          const selected = value === g.id;
+          return (
+            <button
+              key={g.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(selected ? null : g.id)}
+              className={`rounded-lg border-[1.5px] px-3 py-1.5 text-left motion-safe:transition-colors ${
+                selected ? "border-accent bg-body" : "border-border hover:border-border-strong"
+              }`}
+            >
+              <span className="block text-[15px] text-primary">{g.label}</span>
+              <span className="block text-[12px] text-secondary">{g.years}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {chosen ? (
+        <div className="mt-1 rounded-lg border border-border bg-surface px-3 py-2">
+          <Text type="supporting" color="secondary" display="block">
+            Задевает дополнительно: {chosen.triggers.slice(0, 3).join("; ")}.
+          </Text>
+          <Text type="supporting" color="secondary" display="block">
+            Располагает: {chosen.soothers.slice(0, 3).join("; ")}.
+          </Text>
+          <Text type="supporting" color="secondary" display="block">
+            Для слоёв интересов: {chosen.hiddenInterestHints.join("; ")}.
+          </Text>
+          <Text type="supporting" color="secondary" display="block">
+            Речь: {chosen.speechMarkers}
+          </Text>
+        </div>
+      ) : (
+        <Text type="supporting" color="secondary" display="block">
+          Необязательно. Уточняет контекст поверх характера: что собеседник
+          ценит, чего боится и как говорит.
+        </Text>
+      )}
+    </div>
   );
 }
 

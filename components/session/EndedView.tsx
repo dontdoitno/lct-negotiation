@@ -16,7 +16,7 @@ export function EndedView({
 }: {
   sessionId: string;
   endReason: EndReason;
-  personaType: "rational" | "anxious" | "aggressive";
+  personaType: "aggressive" | "anxious" | "rational" | "manipulative" | "passive_aggressive" | "burnt_out" | "conformist";
 }) {
   const router = useRouter();
   const href = `/session/${sessionId}/debrief`;

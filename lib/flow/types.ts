@@ -35,9 +35,17 @@ export interface CaseTileData {
   title: string;
   domain: string;
   topic: string;
-  tone: "aggressive" | "anxious" | "rational" | "custom";
+  tone:
+    | "aggressive"
+    | "anxious"
+    | "rational"
+    | "manipulative"
+    | "passive_aggressive"
+    | "burnt_out"
+    | "conformist"
+    | "custom";
   difficulty: "easy" | "normal" | "hard";
-  personaType: "rational" | "anxious" | "aggressive";
+  personaType: "aggressive" | "anxious" | "rational" | "manipulative" | "passive_aggressive" | "burnt_out" | "conformist";
   displayName: string;
   attempts: number;
   /** Best result per metric across finished attempts; empty until one exists. */

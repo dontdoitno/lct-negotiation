@@ -1,6 +1,7 @@
 import { ScenarioDraft, METRIC_LEVEL_VALUE } from "./types";
 import { MetricCode } from "@/lib/engine/types";
 import { splitContext } from "./adapters";
+import { GENERATION_PRESETS } from "./generations";
 
 /**
  * Что получится из черновика: отдельно то, что прочитает игрок, и отдельно то,
@@ -43,6 +44,8 @@ export interface HiddenPreview {
   exitLine: string;
   /** Предыстория от второго лица: уходит в промт, в брифинг не попадает. */
   npcBackstory: string;
+  /** Поколение: уточняет контекст в промте, игроку не показывается. */
+  generation: string;
 }
 
 export function playerPreview(draft: ScenarioDraft): PlayerPreview {
@@ -83,5 +86,6 @@ export function hiddenPreview(draft: ScenarioDraft): HiddenPreview {
     openingLineBrief: draft.openingLine,
     exitLine: draft.exitLine,
     npcBackstory: draft.npcBackstory,
+    generation: draft.generation ? GENERATION_PRESETS[draft.generation].label : "не задано",
   };
 }

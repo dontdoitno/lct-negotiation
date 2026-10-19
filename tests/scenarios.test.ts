@@ -7,6 +7,8 @@ import { checkDraftShape } from "@/lib/scenarios/shape";
 import { splitContext, toPersona, toScenario } from "@/lib/scenarios/adapters";
 import { hiddenPreview, playerPreview } from "@/lib/scenarios/preview";
 import { TONE_PRESETS } from "@/lib/scenarios/presets";
+import { GENERATION_PRESETS } from "@/lib/scenarios/generations";
+import { renderPrompt } from "@/lib/scenarios/promptRender";
 import { ScenarioDefinition } from "@/lib/scenarios/types";
 import { applyTurn, createInitialState } from "@/lib/engine/state";
 
@@ -25,6 +27,7 @@ function makeScenario(overrides: Partial<ScenarioDefinition> = {}): ScenarioDefi
     npcPosition: "Middle-разработчик",
     npcBackstory: "Ты не вывозишь объём и боишься сказать об этом прямо.",
     avatar: null,
+    generation: null,
     tone: "anxious",
     characterNote: preset.characterNote,
     temperament: preset.temperament,
@@ -354,5 +357,79 @@ describe("проверка формы черновика на входе в API"
     expect(checkDraftShape({ ...emptyDraft(), hiddenLayers: "не список" })).toContain("списком");
     expect(checkDraftShape({ ...emptyDraft(), turnLimit: "много" })).toContain("числом");
     expect(checkDraftShape({ ...emptyDraft(), sensitivity: NaN })).toContain("числом");
+  });
+});
+
+// --- Новые характеры и поколения -------------------------------------------
+
+describe("пресеты характеров", () => {
+  it("их семь, и у каждого заполнены все поля", () => {
+    const keys = Object.keys(TONE_PRESETS);
+    expect(keys.length).toBe(7);
+
+    for (const [key, p] of Object.entries(TONE_PRESETS)) {
+      expect(p.label, key).toBeTruthy();
+      expect(p.characterNote, key).toBeTruthy();
+      expect(p.temperament.length, key).toBeGreaterThan(100);
+      expect(p.triggers.length, key).toBeGreaterThanOrEqual(3);
+      expect(p.soothers.length, key).toBeGreaterThanOrEqual(3);
+      expect(p.exitLine, key).toBeTruthy();
+      expect(p.behaviorRules.length, key).toBeGreaterThanOrEqual(6);
+      expect(p.adaptiveActions.length, key).toBeGreaterThanOrEqual(3);
+      expect(p.maladaptiveActions.length, key).toBeGreaterThanOrEqual(3);
+      for (const lvl of ["high", "medium", "low"] as const) {
+        expect(p.resistanceScale[lvl], `${key}.${lvl}`).toBeTruthy();
+        expect(p.fallbackLines[lvl].length, `${key}.${lvl}`).toBeGreaterThanOrEqual(5);
+      }
+    }
+  });
+
+  it("каждый характер двигает договорённости и пространство решений", () => {
+    for (const [key, p] of Object.entries(TONE_PRESETS)) {
+      const movesC = Object.values(p.reactions).some((r) => r?.C);
+      const movesS = Object.values(p.reactions).some((r) => r?.S);
+      expect(movesC, `${key}: ни одно действие не двигает C`).toBe(true);
+      expect(movesS, `${key}: ни одно действие не двигает S`).toBe(true);
+    }
+  });
+
+  it("новые характеры отличаются от старых хотя бы одной реакцией", () => {
+    const base = TONE_PRESETS.rational.reactions;
+    for (const key of ["manipulative", "passive_aggressive", "burnt_out", "conformist"] as const) {
+      const r = TONE_PRESETS[key].reactions;
+      const differs = Object.keys(r).some((a) => JSON.stringify(r[a as never]) !== JSON.stringify(base[a as never]));
+      expect(differs, `${key} повторяет рационального`).toBe(true);
+    }
+  });
+});
+
+describe("поколения", () => {
+  it("их три, и у каждого есть блок для промта", () => {
+    const all = Object.values(GENERATION_PRESETS);
+    expect(all.length).toBe(3);
+    for (const g of all) {
+      expect(g.promptBlock.length, g.id).toBeGreaterThan(150);
+      expect(g.triggers.length, g.id).toBeGreaterThanOrEqual(3);
+      expect(g.soothers.length, g.id).toBeGreaterThanOrEqual(3);
+      expect(g.hiddenInterestHints.length, g.id).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("поколение попадает в промт и не ломает его отсутствием", () => {
+    const template = "ТВОЙ ХАРАКТЕР:\n{{temperament}}\n{{generation}}\nДАЛЬШЕ";
+
+    const without = renderPrompt(template, makeScenario({ generation: null }));
+    expect(without).not.toContain("Поколение:");
+    expect(without).toContain("ДАЛЬШЕ");
+
+    const withGen = renderPrompt(template, makeScenario({ generation: "zoomer" }));
+    expect(withGen).toContain("Поколение: зумер");
+    expect(withGen).toContain("ДАЛЬШЕ");
+  });
+
+  it("поколение не показывается игроку", () => {
+    const shown = JSON.stringify(playerPreview(makeScenario({ generation: "genx" })));
+    expect(shown).not.toContain("Поколение");
+    expect(shown).not.toContain("genx");
   });
 });

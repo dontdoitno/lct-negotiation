@@ -206,6 +206,10 @@ function rephraseReveal(text: string, persona: Persona): string {
     aggressive: ["Раз уж об этом зашла речь — ", "Ладно, скажу прямо: ", "Если честно: "],
     anxious: ["Если честно… ", "Может, не стоит, но… ", "Ладно, скажу как есть: "],
     rational: ["Раз мы про факты — ", "Если совсем прямо: ", "По сути дела: "],
+    manipulative: ["Давайте начистоту: ", "Я же не прошу лишнего — ", "Смотрите как получается: "],
+    passive_aggressive: ["Ну конечно. ", "Как скажете. Только ", "Я-то что, я ничего. Просто "],
+    burnt_out: ["Ну… ", "Не знаю. ", "А смысл. "],
+    conformist: ["Мы тут обсуждали — ", "Ребята просили передать: ", "Не только я так считаю: "],
   };
   const prefix = prefixesByType[persona.type][text.length % 3];
   return `${prefix}${text[0].toLowerCase()}${text.slice(1)}`;

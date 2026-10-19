@@ -10,6 +10,7 @@
 
 ТВОЙ ХАРАКТЕР:
 {{temperament}}
+{{generation}}
 Тебя задевает: {{triggers}}
 Тебя располагает: {{soothers}}
 
