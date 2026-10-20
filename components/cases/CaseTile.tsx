@@ -21,19 +21,31 @@ export function CaseTile({ data }: { data: CaseTileData }) {
   if (locked) {
     return (
       <li className="cursor-default">
-        <article className="flex h-full min-h-44 flex-col gap-2 rounded-2xl border border-border bg-muted px-5 py-4">
+        <article className="flex h-full flex-col gap-1 rounded-2xl border border-border bg-muted px-4 py-3 sm:min-h-44 sm:gap-2 sm:px-5 sm:py-4">
           <div className="flex items-start justify-between gap-2">
             <Text type="supporting" color="disabled">
               {CASES.callLabel(data.callNumber)}
             </Text>
             {data.assigned ? <AssignedBadge dueAt={data.dueAt} /> : <LockIcon />}
           </div>
-          <DifficultyChip difficulty={data.difficulty} muted />
-          <span className="block text-[19px] text-disabled">{data.displayName}</span>
-          <Text type="supporting" color="disabled" display="block">
-            {data.topic}
-          </Text>
-          <div className="mt-auto max-w-40">
+          {/* Чип сложности на телефоне идёт в строку с темой: своя строка на
+              каждый чип раздувала карточку впятеро против её содержания. */}
+          <div className="hidden sm:block">
+            <DifficultyChip difficulty={data.difficulty} muted />
+          </div>
+          <span className="block text-[17px] text-disabled sm:text-[19px]">{data.displayName}</span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Text type="supporting" color="disabled">
+              {data.topic}
+            </Text>
+            <span className="sm:hidden">
+              <DifficultyChip difficulty={data.difficulty} muted />
+            </span>
+          </div>
+          {/* На телефоне закрытых карточек подряд дюжина, и эта строка
+              повторялась бы двенадцать раз. Там замок говорит то же самое,
+              а объяснение стоит один раз над доской. */}
+          <div className="mt-auto hidden max-w-40 sm:block">
             <Text type="supporting" color="disabled" display="block">
               {CASES.lockedNote}
             </Text>
@@ -47,7 +59,7 @@ export function CaseTile({ data }: { data: CaseTileData }) {
     <li>
       <Link href={`/brief/${data.levelId}`} className="group block h-full">
         <article
-          className={`flex h-full min-h-44 flex-col gap-2 rounded-2xl bg-surface px-5 py-4 motion-safe:transition-shadow ${
+          className={`flex h-full flex-col gap-1 rounded-2xl bg-surface px-4 py-3 motion-safe:transition-shadow sm:min-h-44 sm:gap-2 sm:px-5 sm:py-4 ${
             recommended
               ? "border-2 border-border-strong"
               : "border border-border group-hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
@@ -73,11 +85,23 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             {data.displayName}
           </Heading>
 
-          <Text type="supporting" color="secondary" display="block">
-            {data.topic}
-          </Text>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Text type="supporting" color="secondary">
+              {data.topic}
+            </Text>
+            <span className="sm:hidden">
+              <DifficultyChip difficulty={data.difficulty} />
+            </span>
+          </div>
 
-          <div className="flex items-center justify-between gap-3">
+          {/* Непройденный разговор это состояние по умолчанию. На телефоне
+              строка «Не пройдено» повторялась бы на каждой из дюжины карточек,
+              занимая строку и ничего не сообщая. */}
+          <div
+            className={`items-center justify-between gap-3 ${
+              !recommended && data.attempts === 0 ? "hidden sm:flex" : "flex"
+            }`}
+          >
             <Text type="supporting" color="secondary">
               {recommended
                 ? CASES.recommendedNote
@@ -92,12 +116,12 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             )}
           </div>
 
-          <div className="mt-auto pt-2">
+          <div className="mt-auto hidden pt-2 sm:block">
             <DifficultyChip difficulty={data.difficulty} />
           </div>
 
           {recommended && (
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-inverted px-4 py-3">
+            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl bg-inverted px-4 py-2.5 sm:mt-0 sm:py-3">
               <span className="text-[15px] font-bold text-surface">{CASES.startCall}</span>
               <ArrowRight />
             </div>

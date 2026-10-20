@@ -32,7 +32,7 @@ export default async function AnalyticsPage() {
   const anyPlaythroughs = stats.some((s) => s.playthroughs > 0);
 
   return (
-    <main className="mx-auto max-w-wide px-6 py-8">
+    <main className="mx-auto max-w-wide px-4 py-6 sm:px-6 sm:py-8">
       <Heading level={1} type="display-3">
         Аналитика
       </Heading>

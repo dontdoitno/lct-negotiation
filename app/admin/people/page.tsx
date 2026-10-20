@@ -46,7 +46,7 @@ export default async function PeoplePage() {
     .map((s) => ({ id: s.id, title: s.title, direction: s.direction, npcName: s.npcName }));
 
   return (
-    <main className="mx-auto max-w-wide px-6 py-8">
+    <main className="mx-auto max-w-wide px-4 py-6 sm:px-6 sm:py-8">
       <Heading level={1} type="display-3">
         {org.name}
       </Heading>

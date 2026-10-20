@@ -152,41 +152,51 @@ export function ScenarioTable({ scenarios }: { scenarios: ScenarioDefinition[] }
         </div>
       ) : (
         <div className="mt-4 overflow-x-auto rounded-lg border-[1.5px] border-border bg-surface">
-          <table className="w-full min-w-[960px] border-collapse">
-            <thead>
+          {/* Девять колонок на телефоне превращались в таблицу шириной 1204
+              пикселя: на экране оставались название и сфера, а статус и все
+              кнопки действий уезжали вправо. Подробности там прячем, а строка
+              перестаёт быть строкой таблицы и становится блоком: название со
+              статусом сверху, кнопки действий под ними во всю ширину. */}
+          <table className="w-full border-collapse lg:min-w-[960px]">
+            <thead className="hidden lg:table-header-group">
               <tr className="border-b-[1.5px] border-border">
                 <Th>{ADMIN.columns.title}</Th>
-                <Th>{ADMIN.columns.domain}</Th>
-                <Th>{ADMIN.columns.topic}</Th>
-                <Th>{ADMIN.columns.tone}</Th>
-                <Th>{ADMIN.columns.difficulty}</Th>
-                <Th>{ADMIN.columns.status}</Th>
-                <Th align="right">{ADMIN.columns.playthroughs}</Th>
-                <Th>{ADMIN.columns.updatedAt}</Th>
+                <Th hideNarrow>{ADMIN.columns.domain}</Th>
+                <Th hideNarrow>{ADMIN.columns.topic}</Th>
+                <Th hideNarrow>{ADMIN.columns.tone}</Th>
+                <Th hideNarrow>{ADMIN.columns.difficulty}</Th>
+                <Th hideNarrow>{ADMIN.columns.status}</Th>
+                <Th align="right" hideNarrow>{ADMIN.columns.playthroughs}</Th>
+                <Th hideNarrow>{ADMIN.columns.updatedAt}</Th>
                 <Th> </Th>
               </tr>
             </thead>
             <tbody>
               {visible.map((s) => (
-                <tr key={s.id} className="border-b border-border last:border-b-0 hover:bg-body">
+                <tr key={s.id} className="block border-b border-border last:border-b-0 hover:bg-body lg:table-row">
                   <Td>
                     <Link href={`/admin/scenarios/${s.id}/edit`}>
                       <Text weight="bold">{s.title}</Text>
                     </Link>
+                    {/* На узком экране своей колонки у статуса нет: вдвоём с
+                        названием и кнопками они не помещаются в ширину. */}
+                    <div className="mt-1 lg:hidden">
+                      <Badge label={s.status === "published" ? ADMIN.statusPublished : ADMIN.statusDraft} />
+                    </div>
                   </Td>
-                  <Td>{s.domain}</Td>
-                  <Td>{s.topic}</Td>
-                  <Td>{TONE_LABELS[s.tone]}</Td>
-                  <Td>{DIFFICULTY_PRESETS[s.difficultyPreset].label}</Td>
-                  <Td>
+                  <Td hideNarrow>{s.domain}</Td>
+                  <Td hideNarrow>{s.topic}</Td>
+                  <Td hideNarrow>{TONE_LABELS[s.tone]}</Td>
+                  <Td hideNarrow>{DIFFICULTY_PRESETS[s.difficultyPreset].label}</Td>
+                  <Td hideNarrow>
                     <Badge label={s.status === "published" ? ADMIN.statusPublished : ADMIN.statusDraft} />
                   </Td>
-                  <Td align="right">
+                  <Td align="right" hideNarrow>
                     <span className="font-mono tabular-nums">{s.playthroughCount}</span>
                   </Td>
-                  <Td>{new Date(s.updatedAt).toLocaleDateString("ru-RU")}</Td>
+                  <Td hideNarrow>{new Date(s.updatedAt).toLocaleDateString("ru-RU")}</Td>
                   <Td>
-                    <div className="flex flex-wrap items-center justify-end gap-1">
+                    <div className="flex flex-wrap items-center gap-1 lg:justify-end">
                       <Link href={`/admin/scenarios/${s.id}/edit`}>
                         <Button variant="ghost" size="sm" label={ADMIN.actions.edit} />
                       </Link>
@@ -226,9 +236,22 @@ export function ScenarioTable({ scenarios }: { scenarios: ScenarioDefinition[] }
   );
 }
 
-function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
+function Th({
+  children,
+  align = "left",
+  hideNarrow,
+}: {
+  children: React.ReactNode;
+  align?: "left" | "right";
+  /** Колонка с подробностями: на узком экране её не показываем. */
+  hideNarrow?: boolean;
+}) {
   return (
-    <th className={`px-3 py-2 ${align === "right" ? "text-right" : "text-left"}`}>
+    <th
+      className={`px-3 py-2 ${align === "right" ? "text-right" : "text-left"} ${
+        hideNarrow ? "hidden lg:table-cell" : ""
+      }`}
+    >
       <Text type="label" color="secondary">
         {children}
       </Text>
@@ -236,9 +259,21 @@ function Th({ children, align = "left" }: { children: React.ReactNode; align?: "
   );
 }
 
-function Td({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
+function Td({
+  children,
+  align = "left",
+  hideNarrow,
+}: {
+  children: React.ReactNode;
+  align?: "left" | "right";
+  hideNarrow?: boolean;
+}) {
   return (
-    <td className={`px-3 py-2 align-middle ${align === "right" ? "text-right" : "text-left"}`}>
+    <td
+      className={`px-3 py-2 align-middle ${align === "right" ? "text-right" : "text-left"} ${
+        hideNarrow ? "hidden lg:table-cell" : "block lg:table-cell"
+      }`}
+    >
       {typeof children === "string" ? <Text type="supporting">{children}</Text> : children}
     </td>
   );

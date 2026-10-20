@@ -6,18 +6,24 @@ import { CaseTileData } from "@/lib/flow/types";
 import { CASES } from "@/lib/flow/copy";
 import { CaseTile } from "./CaseTile";
 
-/** Сколько карточек помещается в строку. Остальные уезжают вбок. */
+/** Сколько карточек помещается в строку на широком экране. */
 const VISIBLE = 3;
+
+/** С этой ширины лента становится горизонтальной. Совпадает с sm. */
+const ROW_FROM = 640;
 
 /** Промежуток между карточками в пикселях, он же gap-4 в разметке. */
 const GAP = 16;
 
 /**
- * Одна тема с лентой разговоров. Показываем не больше трёх карточек, остальные
- * листаются вбок колесом, свайпом или стрелками.
+ * Одна тема с лентой разговоров. На широком экране это горизонтальная лента:
+ * видно не больше трёх карточек, остальные листаются колесом, свайпом или
+ * стрелками. Прокрутка не прячет карточки за кнопкой «показать ещё», набор
+ * ощущается целым, просто не влезает в экран.
  *
- * Лента не прячет карточки за кнопкой «показать ещё»: горизонтальная прокрутка
- * сохраняет ощущение, что весь набор на месте, просто не влезает в экран.
+ * На телефоне ленты нет. Там карточки идут столбцом во всю ширину: вбок в
+ * экран помещается меньше одной, и листать пять направлений по очереди
+ * тяжелее, чем прокрутить страницу вниз.
  */
 export function TopicRow({
   topic,
@@ -33,7 +39,18 @@ export function TopicRow({
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
 
-  const scrollable = items.length > VISIBLE;
+  // Горизонтальная лента живёт только от sm. Ниже карточки идут столбцом, и
+  // стрелки с замерами прокрутки там не нужны.
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia(`(min-width: ${ROW_FROM}px)`);
+    const apply = () => setWide(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
+
+  const scrollable = wide && items.length > VISIBLE;
 
   const sync = useCallback(() => {
     const el = scroller.current;
@@ -77,7 +94,7 @@ export function TopicRow({
             </Text>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <Text type="supporting" color="disabled">
             {CASES.callCount(items.length)}
           </Text>
@@ -92,11 +109,7 @@ export function TopicRow({
 
       <ul
         ref={scroller}
-        className={`grid auto-cols-[85%] grid-flow-col gap-4 sm:auto-cols-[calc((100%-1rem)/2)] lg:auto-cols-[calc((100%-2rem)/3)] ${
-          scrollable
-            ? "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            : ""
-        }`}
+        className="grid grid-flow-row gap-4 sm:grid-flow-col sm:auto-cols-[calc((100%-1rem)/2)] sm:overflow-x-auto sm:[scrollbar-width:none] lg:auto-cols-[calc((100%-2rem)/3)] sm:[&::-webkit-scrollbar]:hidden"
       >
         {items.map((tile) => (
           <CaseTile key={tile.levelId} data={tile} />

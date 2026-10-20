@@ -37,7 +37,8 @@ export function InputBar({
   hintOpen: boolean;
   onToggleHint: () => void;
 }) {
-  const pill = "rounded-full border-[1.5px] border-border-strong px-4 py-2 text-[15px] text-primary disabled:opacity-40";
+  const pill =
+    "rounded-full border-[1.5px] border-border-strong px-3 py-1.5 text-[13px] text-primary disabled:opacity-40 sm:px-4 sm:py-2 sm:text-[15px]";
   const hintBtn = (
     <button onClick={onToggleHint} disabled={!hintAvailable} className={`${pill} ${hintOpen ? "border-dashed !border-accent !text-accent" : ""}`}>
       ? Подсказка
@@ -47,7 +48,10 @@ export function InputBar({
   if (mode === "text" || !voiceSupported) {
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-end gap-2">
+        {/* На телефоне поле занимает свою строку: вчетвером в одну строку
+            оно сжималось до сотни пикселей. На широком экране порядок
+            прежний, поле между микрофоном и отправкой. */}
+        <div className="flex flex-wrap items-end gap-2">
           {voiceSupported && (
             <button
               onClick={() => onModeChange("voice")}
@@ -69,18 +73,19 @@ export function InputBar({
             }}
             placeholder="Напишите реплику…"
             rows={2}
-            className="max-h-28 min-h-[48px] flex-1 resize-none rounded-md border-2 border-accent bg-surface px-3 py-2.5 text-[15px] text-primary outline-none placeholder:text-disabled"
+            className="order-first max-h-24 min-h-[44px] w-full flex-1 basis-full resize-none rounded-md border-2 border-accent bg-surface px-3 py-2 text-[15px] text-primary outline-none placeholder:text-disabled sm:order-none sm:max-h-28 sm:min-h-[48px] sm:w-auto sm:basis-auto sm:py-2.5"
           />
           <button
             onClick={onSubmit}
             disabled={disabled || !value.trim()}
-            className="shrink-0 rounded-md bg-accent-bg px-4 py-3 text-[15px] text-white disabled:opacity-40"
+            className="shrink-0 rounded-md bg-accent-bg px-3 py-2.5 text-[14px] text-white disabled:opacity-40 sm:px-4 sm:py-3 sm:text-[15px]"
           >
             {disabled ? "…" : "Отправить"}
           </button>
           {hintBtn}
         </div>
-        <div className="text-[13px] text-disabled">Enter — отправить · Shift+Enter — новая строка</div>
+        {/* Подсказка про клавиши нужна только там, где есть клавиатура. */}
+        <div className="hidden text-[13px] text-disabled sm:block">Enter — отправить · Shift+Enter — новая строка</div>
       </div>
     );
   }
@@ -92,14 +97,14 @@ export function InputBar({
           Вы: «{interim || "…"}» <span className="text-accent">▍</span>
         </div>
       )}
-      <div className="flex items-center justify-center gap-5">
+      <div className="flex items-center justify-center gap-3 sm:gap-5">
         <button onClick={() => onModeChange("text")} disabled={listening} className={pill}>
           Aa · Текстом
         </button>
         <button
           onClick={listening ? onMicStop : onMicStart}
           disabled={disabled && !listening}
-          className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-accent-bg text-[15px] text-white disabled:opacity-40"
+          className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent-bg text-[12px] text-white disabled:opacity-40 sm:h-[76px] sm:w-[76px] sm:text-[15px]"
           style={listening ? { boxShadow: "0 0 0 6px color-mix(in oklab, var(--color-accent) 25%, transparent)" } : undefined}
         >
           {listening ? "Стоп" : "Говорить"}

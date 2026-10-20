@@ -158,7 +158,7 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
   }
 
   return (
-    <div className="flex min-h-screen bg-body">
+    <div className="flex min-h-screen flex-col bg-body lg:flex-row">
       <DomainRail
         cases={cases}
         value={filters}
@@ -167,10 +167,12 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
         onToggle={() => setRailCollapsed(!railCollapsed)}
       />
 
-      {/* Своя область прокрутки, чтобы колонка со сферами оставалась на месте. */}
-      <main className="h-screen flex-1 overflow-y-auto scroll-smooth px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+      {/* Своя область прокрутки нужна только там, где колонка сфер стоит
+          сбоку и должна оставаться на месте. На телефоне прокручивается сама
+          страница: вложенный скролл там ломает скрытие адресной строки. */}
+      <main className="flex-1 px-4 py-6 sm:px-6 lg:h-screen lg:overflow-y-auto lg:scroll-smooth lg:px-10 lg:py-8">
         <div className="mx-auto flex max-w-wide flex-col gap-8">
-          <header className="flex flex-wrap items-start justify-between gap-4">
+          <header className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <Text type="supporting" color="secondary" display="block">
                 {filters.domain ?? CASES.allDomains}
@@ -189,6 +191,16 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
               </Link>
             )}
           </header>
+
+          {/* Объяснение закрытых карточек один раз над доской. На широком
+              экране оно стоит на самих карточках и здесь не нужно. */}
+          {!hasProgress && (
+            <div className="-mt-4 sm:hidden">
+              <Text type="supporting" color="secondary" display="block">
+                {CASES.lockedBoardNote}
+              </Text>
+            </div>
+          )}
 
           {hasProgress && accumulated && (
             <Card>

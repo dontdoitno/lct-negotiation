@@ -18,8 +18,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-body text-primary">
       <header className="border-b-[1.5px] border-border bg-surface">
-        <div className="mx-auto flex max-w-wide items-center justify-between gap-4 px-6 py-3">
-          <div className="flex items-center gap-5">
+        <div className="mx-auto flex max-w-wide flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 sm:px-6 sm:py-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:gap-5">
             <Link href="/admin">
               <Text type="label" weight="bold">
                 {ADMIN.sectionTitle}

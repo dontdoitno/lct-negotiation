@@ -14,8 +14,11 @@ import { FilterState, EMPTY_FILTERS } from "./filters";
  * лежат списком и всегда раскрыты, а остальные фильтры убраны вниз и не
  * перетягивают внимание.
  *
- * Колонку можно свернуть влево: на узком экране и при одной сфере она только
+ * Колонку можно свернуть влево: на широком экране при одной сфере она только
  * занимает место.
+ *
+ * На телефоне колонки сбоку нет вовсе: там она съедала бы половину ширины у
+ * карточек. Вместо неё блок над доской, по умолчанию свёрнутый в одну строку.
  */
 export function DomainRail({
   cases,
@@ -43,22 +46,23 @@ export function DomainRail({
 
   if (collapsed) {
     return (
-      <aside className="sticky top-0 flex h-screen w-14 shrink-0 flex-col items-center border-r border-border bg-body py-6">
+      <aside className="flex shrink-0 items-center border-b border-border bg-body px-4 py-2 lg:sticky lg:top-0 lg:h-screen lg:w-14 lg:flex-col lg:border-r lg:border-b-0 lg:px-0 lg:py-6">
         <button
           type="button"
           onClick={onToggle}
           aria-label={CASES.railExpand}
           title={CASES.railExpand}
-          className="rounded-md p-2 text-secondary motion-safe:transition-colors hover:bg-surface hover:text-primary"
+          className="flex items-center gap-1.5 rounded-md p-2 text-secondary motion-safe:transition-colors hover:bg-surface hover:text-primary"
         >
           <ChevronRight />
+          <span className="text-[14px] lg:hidden">{CASES.railExpand}</span>
         </button>
       </aside>
     );
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-56 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-body px-4 py-6 sm:w-64 sm:px-5">
+    <aside className="flex shrink-0 flex-col gap-5 border-b border-border bg-body px-4 py-4 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:gap-6 lg:overflow-y-auto lg:border-r lg:border-b-0 lg:px-5 lg:py-6">
       <div className="flex items-center justify-between">
         <Text type="label" color="secondary">
           {CASES.railTitle}

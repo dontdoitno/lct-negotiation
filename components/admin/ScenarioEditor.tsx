@@ -662,9 +662,9 @@ export function ScenarioEditor({
             <Field label="Стартовые метрики" hint="Уровень задаёт значение. Число рядом — точная донастройка.">
               <div className="grid gap-2 sm:grid-cols-2">
                 {METRICS.map((m) => (
-                  <div key={m} className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2">
+                  <div key={m} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 rounded-md border border-border px-3 py-2">
                     <Text type="supporting">{METRIC_META[m].label}</Text>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {LEVELS.map((level) => (
                         <button
                           key={level}
@@ -763,7 +763,7 @@ export function ScenarioEditor({
                   onChange={(next) => patch({ customPrompt: next })}
                   rows={20}
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -781,7 +781,7 @@ export function ScenarioEditor({
                 <pre className="max-h-[32rem] overflow-auto rounded-md border-[1.5px] border-border bg-surface p-4 font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-primary">
                   {prompt}
                 </pre>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
                     size="sm"

@@ -11,12 +11,12 @@ export default async function AdminScenariosPage() {
   const scenarios = await listScenarios();
 
   return (
-    <main className="mx-auto max-w-wide px-6 py-8">
+    <main className="mx-auto max-w-wide px-4 py-6 sm:px-6 sm:py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Heading level={1} type="display-3">
           {ADMIN.listTitle}
         </Heading>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href="/admin/scenarios/generate">
             <Button variant="secondary" label={ADMIN.generate} />
           </Link>

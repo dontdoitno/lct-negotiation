@@ -34,7 +34,7 @@ export function NpcReplyCard({
 
   if (thinking && !text) {
     return (
-      <div className="rise-in absolute inset-x-8 bottom-6 flex flex-col gap-2 rounded-[10px] border-2 border-dashed border-disabled bg-surface px-5 py-4">
+      <div className="rise-in absolute inset-x-3 bottom-3 flex flex-col gap-2 rounded-[10px] border-2 border-dashed border-disabled bg-surface px-4 py-3 sm:inset-x-8 sm:bottom-6 sm:px-5 sm:py-4">
         <div className="label-case text-[12px] text-secondary">{firstName} печатает · · ·</div>
         <div className="h-2.5 w-4/5 rounded bg-skeleton" />
         <div className="h-2.5 w-[55%] rounded bg-skeleton" />
@@ -46,7 +46,7 @@ export function NpcReplyCard({
 
   if (mode === "subtitles") {
     return (
-      <div className="absolute inset-x-10 bottom-5 rounded-md border border-disabled bg-white/90 px-3 py-1.5 text-center text-[15px] text-primary">
+      <div className="absolute inset-x-3 bottom-4 rounded-md border border-disabled bg-white/90 px-3 py-1.5 text-center text-[14px] text-primary sm:inset-x-10 sm:bottom-5 sm:text-[15px]">
         «{text}»
       </div>
     );
@@ -54,12 +54,12 @@ export function NpcReplyCard({
 
   if (collapsed) {
     return (
-      <div className="absolute inset-x-8 bottom-6 flex items-center gap-3 rounded-[10px] border-2 border-primary bg-surface px-4 py-2.5">
+      <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-[10px] border-2 border-primary bg-surface px-3 py-2 sm:inset-x-8 sm:bottom-6 sm:px-4 sm:py-2.5">
         <div className="min-w-0 flex-1">
           <div className="label-case text-[11px] text-secondary">{firstName} · ответ текстом</div>
           {/* Одна строка с началом реплики: свёрнутая карточка не должна
               превращаться в глухую заглушку, иначе новый ответ теряется. */}
-          <p className="truncate text-[15px] text-primary">
+          <p className="truncate text-[14px] text-primary sm:text-[15px]">
             {text}
             {streaming && <span className="text-accent">▍</span>}
           </p>
@@ -70,16 +70,18 @@ export function NpcReplyCard({
   }
 
   return (
-    <div className="absolute inset-x-8 bottom-6 flex max-h-[55%] flex-col gap-2 overflow-y-auto rounded-[10px] border-2 border-primary bg-surface px-5 py-4">
+    <div className="absolute inset-x-3 bottom-3 flex max-h-[62%] flex-col gap-2 overflow-y-auto rounded-[10px] border-2 border-primary bg-surface px-4 py-3 sm:inset-x-8 sm:bottom-6 sm:max-h-[55%] sm:px-5 sm:py-4">
       <div className="flex items-start justify-between gap-3">
         <div className="label-case text-[12px] text-secondary">{firstName} · ответ текстом</div>
         <ToggleButton expanded controls={bodyId} onClick={() => setCollapsed(true)} />
       </div>
-      <div id={bodyId} className="text-[22px] leading-[1.4] text-primary">
+      <div id={bodyId} className="text-[16px] leading-[1.45] text-primary sm:text-[19px] lg:text-[22px]">
         {text}
         {streaming && <span className="text-accent">▍</span>}
       </div>
-      <div className="text-[13px] text-disabled">Предыдущие реплики — в транскрипте слева</div>
+      {/* Транскрипт лежит слева только на широком экране: на телефоне он
+          открывается кнопкой снизу, и подсказка про «слева» там врёт. */}
+      <div className="hidden text-[13px] text-disabled lg:block">Предыдущие реплики — в транскрипте слева</div>
     </div>
   );
 }

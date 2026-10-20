@@ -229,29 +229,38 @@ export default function CallPage() {
   // В тест-прогоне тот же экран, но с плашкой сверху и панелью отладки справа.
   const screen = (
     <div className="grid h-full min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-surface text-primary lg:grid-rows-[auto_minmax(0,1fr)]">
-      <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b-[1.5px] border-border-strong px-6 py-2.5">
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b-[1.5px] border-border-strong px-4 py-2 sm:gap-x-5 sm:gap-y-2 sm:px-6 sm:py-2.5">
         <span className={`h-2 w-2 rounded-full ${ended ? "bg-disabled" : "rec-dot bg-accent-bg"}`} />
-        <h1 className="text-[19px] font-bold leading-tight">{scenario.title}</h1>
-        <div className="flex-1" />
+        <h1 className="min-w-0 flex-1 basis-[calc(100%-1.75rem)] truncate text-[15px] font-bold leading-tight sm:basis-auto sm:flex-none sm:text-[19px]">
+          {scenario.title}
+        </h1>
+        {/* Распорка нужна только в одну строку. На телефоне заголовок
+            занимает свою строку, и распорка утащила бы остальное вправо. */}
+        <div className="hidden flex-1 sm:block" />
         <button
           onClick={() => setTrainingOverride(!trainingMode)}
-          className={`rounded-full border-[1.5px] px-3 py-1 text-[13px] ${trainingMode ? "border-accent text-accent" : "border-border text-secondary"}`}
+          className={`shrink-0 rounded-full border-[1.5px] px-2.5 py-0.5 text-[12px] sm:px-3 sm:py-1 sm:text-[13px] ${trainingMode ? "border-accent text-accent" : "border-border text-secondary"}`}
         >
-          Обучающий режим {trainingMode ? "вкл" : "выкл"}
+          {/* На телефоне в строку влезает только короткая форма. */}
+          <span className="sm:hidden">Обучение {trainingMode ? "вкл" : "выкл"}</span>
+          <span className="hidden sm:inline">Обучающий режим {trainingMode ? "вкл" : "выкл"}</span>
         </button>
-        <div className="flex items-center gap-2.5 text-base">
+        <div className="flex items-center gap-2 text-[13px] sm:gap-2.5 sm:text-base">
           <span className="font-mono tabular-nums">{mm}:{ss}</span>
-          <span className="text-secondary">· ход {Math.min(s.turn, scenario.turnLimit)} из {scenario.turnLimit}</span>
-          <div className="h-2 w-[140px] overflow-hidden rounded border-[1.5px] border-border-strong">
+          <span className="text-secondary">
+            · ход {Math.min(s.turn, scenario.turnLimit)} из {scenario.turnLimit}
+          </span>
+          {/* Полоска хода дублирует числа рядом, на телефоне она лишняя. */}
+          <div className="hidden h-2 w-[140px] overflow-hidden rounded border-[1.5px] border-border-strong sm:block">
             <div className="h-full bg-disabled transition-[width]" style={{ width: `${Math.min(100, (s.turn / scenario.turnLimit) * 100)}%` }} />
           </div>
         </div>
         <button
           onClick={endCall}
           disabled={finishing}
-          className="rounded-md border-2 border-primary px-4 py-1.5 text-base disabled:opacity-60"
+          className="shrink-0 rounded-md border-2 border-primary px-3 py-1 text-[13px] disabled:opacity-60 sm:px-4 sm:py-1.5 sm:text-base"
         >
-          {finishing ? "Завершаем…" : "Завершить разговор"}
+          {finishing ? "Завершаем…" : <><span className="sm:hidden">Завершить</span><span className="hidden sm:inline">Завершить разговор</span></>}
         </button>
       </header>
 
@@ -263,7 +272,7 @@ export default function CallPage() {
         </aside>
 
         {/* Center: call window + input */}
-        <main className="flex min-h-0 flex-col gap-4 overflow-hidden p-5">
+        <main className="flex min-h-0 flex-col gap-3 overflow-hidden p-3 sm:gap-4 sm:p-5">
           <CallStage
             name={persona.displayName}
             avatar={persona.avatar}
