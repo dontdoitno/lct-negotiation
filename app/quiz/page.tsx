@@ -10,7 +10,7 @@ import { QUIZ } from "@/lib/flow/copy";
 import { QuizAnswers } from "@/lib/flow/types";
 import { completeQuiz, setQuizAnswer, useFlowState } from "@/lib/flow/store";
 
-const STEPS = ["role", "topic", "outcome"] as const;
+const STEPS = ["role", "topic", "counterpart"] as const;
 type StepKey = (typeof STEPS)[number];
 
 export default function QuizPage() {

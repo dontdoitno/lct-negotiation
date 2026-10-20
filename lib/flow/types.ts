@@ -5,17 +5,22 @@ import { DirectionId } from "@/lib/scenarios/directions";
 // Quiz
 // ---------------------------------------------------------------------------
 
-export type QuizRole = "teamlead" | "group_head" | "dept_head";
-export type QuizTopic = "overload" | "performance_drop" | "just_practice";
-export type QuizOutcome = "not_followed" | "conflict" | "went_silent";
+export type QuizRole = "group_head" | "dept_head" | "employee";
+export type QuizTopic = "conflict" | "boss_communication" | "process_mess" | "just_practice";
+/**
+ * С кем тяжелее всего договариваться. Отвечает на вопрос, в какую сторону
+ * идёт разговор, поэтому ложится прямо на направления из матрицы
+ * взаимодействия: равный, вверх, вниз.
+ */
+export type QuizCounterpart = "peers" | "boss" | "subordinates";
 
 export interface QuizAnswers {
   role?: QuizRole;
   topic?: QuizTopic;
-  outcome?: QuizOutcome;
+  counterpart?: QuizCounterpart;
 }
 
-export type QuizQuestionId = "role" | "topic" | "outcome";
+export type QuizQuestionId = "role" | "topic" | "counterpart";
 
 export interface QuizOption<V extends string> {
   value: V;

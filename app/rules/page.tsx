@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Text, Heading } from "@astryxdesign/core/Text";
 import { Button } from "@astryxdesign/core/Button";
@@ -15,6 +15,10 @@ export default function RulesPage() {
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
+  // Каталог серверный и ходит в базу: между нажатием и первым кадром проходит
+  // секунда с лишним. Без состояния ожидания кнопка выглядит неработающей, и
+  // человек жмёт её повторно.
+  const [leaving, startLeaving] = useTransition();
 
   const last = index === RULES.cards.length - 1;
   const card = RULES.cards[index];
@@ -24,8 +28,9 @@ export default function RulesPage() {
   }
 
   function finish() {
+    if (leaving) return;
     markRulesSeen();
-    router.push("/cases");
+    startLeaving(() => router.push("/cases"));
   }
 
   return (
@@ -84,11 +89,23 @@ export default function RulesPage() {
         <StepDots count={RULES.cards.length} active={index} />
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" label={RULES.skip} onClick={finish} />
+          <Button
+            variant="ghost"
+            size="sm"
+            label={RULES.skip}
+            onClick={finish}
+            isDisabled={leaving}
+          />
           {last ? (
-            <Button variant="primary" size="lg" label={RULES.finish} onClick={finish} />
+            <Button
+              variant="primary"
+              size="lg"
+              label={leaving ? RULES.opening : RULES.finish}
+              onClick={finish}
+              isLoading={leaving}
+            />
           ) : (
-            <Button variant="primary" label={RULES.next} onClick={() => go(1)} />
+            <Button variant="primary" label={RULES.next} onClick={() => go(1)} isDisabled={leaving} />
           )}
         </div>
       </div>

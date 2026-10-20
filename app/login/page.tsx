@@ -38,8 +38,8 @@ export default function LoginPage() {
         return;
       }
       const data = (await res.json()) as { role: string };
-      // Администратора ведём сразу в его контур: за входом он приходит ради него.
-      router.push(data.role === "admin" ? "/admin" : "/cases");
+      // HR-контур (псевдоним "админ") ведём сразу в него: за входом он приходит ради него.
+      router.push(data.role === "hr" ? "/admin" : "/cases");
       router.refresh();
     } catch {
       setServerError(LOGIN.errors.server);

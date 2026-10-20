@@ -46,7 +46,11 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
   const hasProgress = finished.length > 0;
 
   const recommendedId = useMemo(
-    () => matchLevelFromQuiz(flow.quiz, cases.map((c) => c.levelId)),
+    () =>
+      matchLevelFromQuiz(
+        flow.quiz,
+        cases.map((c) => ({ levelId: c.levelId, direction: c.direction, topic: c.topic, title: c.title })),
+      ),
     [flow.quiz, cases],
   );
 

@@ -163,26 +163,64 @@ async function seedScenarios() {
   console.log(`  сценарии: создано ${created}, уже было ${skipped}`);
 }
 
+/**
+ * Демонстрационная компания и три аккаунта, по одному на роль.
+ *
+ * Компания обязательна: всё, что видит HR, ограничено её рамками, и аккаунт
+ * без организации получает вместо списка людей и аналитики заглушку. Роли
+ * здесь те же три строки, что принимает `isRole` в `lib/access.ts`. Пока
+ * сиды писали `admin` и `user`, на чистой машине администратор молча
+ * становился рядовым сотрудником и в админку не попадал.
+ */
+const DEMO_ORG = { name: "Демо-компания", joinCode: "ARENA-DEMO" };
+
 async function seedUsers() {
+  const org = await prisma.organization.upsert({
+    where: { joinCode: DEMO_ORG.joinCode },
+    update: {},
+    create: DEMO_ORG,
+  });
+  console.log(`  компания ${org.name}: код ${org.joinCode}`);
+
   const accounts = [
     {
       email: "admin@razbor.local",
       password: "admin12345",
-      role: "admin",
+      role: "hr",
       displayName: "Администратор",
+    },
+    {
+      email: "manager@razbor.local",
+      password: "manager12345",
+      role: "manager",
+      displayName: "Руководитель",
     },
     {
       email: "user@razbor.local",
       password: "user12345",
-      role: "user",
-      displayName: "Руководитель",
+      role: "employee",
+      displayName: "Сотрудник",
     },
   ];
 
   for (const account of accounts) {
     const existing = await prisma.user.findUnique({ where: { email: account.email } });
     if (existing) {
-      console.log(`  аккаунт ${account.email}: уже есть`);
+      // Аккаунт мог остаться от сидов с прежними ролями `admin` и `user`
+      // или от времён до появления компаний. Чиним роль и привязку, пароль и
+      // прогресс не трогаем.
+      const fixes: { role?: string; organizationId?: string; displayName?: string } = {};
+      if (existing.role !== account.role) fixes.role = account.role;
+      if (!existing.organizationId) fixes.organizationId = org.id;
+      // Подпись демо-аккаунта правим тоже: сотрудник, подписанный
+      // «Руководитель», сбивает с толку на показе.
+      if (existing.displayName !== account.displayName) fixes.displayName = account.displayName;
+      if (Object.keys(fixes).length > 0) {
+        await prisma.user.update({ where: { id: existing.id }, data: fixes });
+        console.log(`  аккаунт ${account.email}: поправлен (${Object.keys(fixes).join(", ")})`);
+      } else {
+        console.log(`  аккаунт ${account.email}: уже есть`);
+      }
       continue;
     }
     await prisma.user.create({
@@ -191,9 +229,10 @@ async function seedUsers() {
         passwordHash: hashPassword(account.password),
         role: account.role,
         displayName: account.displayName,
+        organizationId: org.id,
       },
     });
-    console.log(`  аккаунт ${account.email}: создан`);
+    console.log(`  аккаунт ${account.email}: создан, роль ${account.role}`);
   }
 }
 
@@ -224,7 +263,7 @@ const AVATAR_BY_PERSONA: Record<string, string> = {
 /**
  * Сценарии, собранные из заготовок конструктора.
  *
- * Шесть исходных приходят из файлов `content/`, эти семь из
+ * Шесть исходных приходят из файлов `content/`, эти девять из
  * `SITUATION_PRESETS`: ситуация плюс первый рекомендованный характер из
  * `inner_docs/SCENARIOUS.md`. Без этого на чистой машине каталог
  * ограничивался бы шестью разговорами.
@@ -244,6 +283,8 @@ const FROM_PRESETS: {
   { id: "s2-2", preset: "s2-2", tone: "manipulative", generation: "zoomer", avatar: "avatar-1" },
   { id: "s2-3", preset: "s2-3", tone: "aggressive", generation: "millennial", avatar: "avatar-2" },
   { id: "s3-1", preset: "s3-1", tone: "rational", generation: "genx", avatar: "avatar-3" },
+  { id: "s3-2", preset: "s3-2", tone: "anxious", generation: "zoomer", avatar: "avatar-2" },
+  { id: "s3-3", preset: "s3-3", tone: "rational", generation: "millennial", avatar: "avatar-2" },
   { id: "s5-1", preset: "s5-1", tone: "rational", generation: "genx", avatar: "avatar-2" },
   { id: "s5-2", preset: "s5-2", tone: "manipulative", generation: "millennial", avatar: "avatar-1" },
 ];

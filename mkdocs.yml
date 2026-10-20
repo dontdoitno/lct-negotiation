@@ -96,3 +96,4 @@ nav:
       - Карта экранов и API: reference/routes.md
       - Метрики и действия: reference/metrics.md
       - Формат контента: reference/content.md
+      - Что изменилось: reference/changes.md

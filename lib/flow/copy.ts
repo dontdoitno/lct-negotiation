@@ -1,4 +1,4 @@
-import { QuizOption, QuizOutcome, QuizRole, QuizTopic } from "./types";
+import { QuizCounterpart, QuizOption, QuizRole, QuizTopic } from "./types";
 
 /**
  * Every piece of interface copy for the flow screens, in one place.
@@ -38,28 +38,27 @@ export const QUIZ = {
     role: {
       title: "Какая у вас роль?",
       options: [
-        { value: "teamlead", label: "Тимлид" },
         { value: "group_head", label: "Руководитель группы" },
         { value: "dept_head", label: "Начальник отдела" },
+        { value: "employee", label: "Рядовой сотрудник" },
       ] as QuizOption<QuizRole>[],
     },
     topic: {
       title: "Что сейчас актуально?",
       options: [
-        { value: "overload", label: "Сотрудники жалуются на объём работы" },
-        { value: "performance_drop", label: "Падение показателей на последний период" },
-        { value: "skipped_deadline", label: "Сотрудники не выполняют дедлайны" },
         { value: "conflict", label: "Конфликты в коллективе" },
+        { value: "boss_communication", label: "Коммуникация с начальством" },
+        { value: "process_mess", label: "Плохая организация рабочих процессов" },
         { value: "just_practice", label: "Просто хочу потренироваться" },
       ] as QuizOption<QuizTopic>[],
     },
-    outcome: {
-      title: "Чем обычно заканчиваются такие разговоры?",
+    counterpart: {
+      title: "С кем чаще всего возникает сложность в переговорах?",
       options: [
-        { value: "not_followed", label: "Договоренностью, которая потом не выполняется" },
-        { value: "conflict", label: "Конфликтом" },
-        { value: "uncertain_situation", label: "Неопределенной ситуацией" },
-      ] as QuizOption<QuizOutcome>[],
+        { value: "peers", label: "С другими сотрудниками из моего или другого отдела" },
+        { value: "boss", label: "С начальством" },
+        { value: "subordinates", label: "С подчинёнными" },
+      ] as QuizOption<QuizCounterpart>[],
     },
   },
 };
@@ -99,7 +98,7 @@ export const RULES = {
   cards: [
     {
       title: "Как это работает",
-      text: "Вы — руководитель. Напротив — AI-сотрудник со своим характером, своей целью и скрытыми причинами, о которых он не скажет сразу. Говорите текстом или голосом, как в обычном звонке.",
+      text: "Напротив — ИИ-собеседник со своим характером, своей целью и скрытыми причинами, о которых он не скажет сразу. Кем будете вы и кем он, написано в брифинге перед разговором: подчинённым, руководителем, коллегой или директором. Говорите текстом или голосом, как в обычном звонке.",
     },
     {
       title: "Что вы качаете",
@@ -122,6 +121,8 @@ export const RULES = {
   next: "Далее",
   finish: "Понятно, начать",
   skip: "Пропустить",
+  /** Пока грузится каталог: нажатие должно быть видно сразу. */
+  opening: "Открываем каталог…",
 };
 
 export const CASES = {
@@ -221,7 +222,7 @@ export const COMMITMENTS = {
   },
   addItem: "Добавить пункт",
   removeItem: "Удалить пункт",
-  submit: "Отправить сотруднику",
+  submit: "Отправить собеседнику",
   submitting: "Отправляем…",
   finish: "Завершить разговор",
   closeConfirm: "Закрыть окно? Введённые договорённости не сохранятся.",
@@ -249,7 +250,7 @@ export const DEBRIEF = {
   outcomeTitle: "Итог",
   outcomeLabels: {
     goalAchievement: "Цель достигнута",
-    employeeSatisfaction: "Удовлетворённость сотрудника",
+    employeeSatisfaction: "Удовлетворённость собеседника",
     commitmentReadiness: "Готовность выполнять договорённости",
     conflictRisk: "Риск конфликта или ухода",
   },

@@ -1,4 +1,5 @@
 import { MetricCode } from "@/lib/engine/types";
+import { DirectionId } from "@/lib/scenarios/directions";
 import { QuizAnswers } from "./types";
 
 export type PersonaType =
@@ -10,46 +11,75 @@ export type PersonaType =
   | "burnt_out"
   | "conformist";
 
-const TOPIC_TO_SCENARIO: Record<string, string> = {
-  overload: "s1-overload",
-  performance_drop: "s3-performance-drop",
-  just_practice: "s1-overload",
-};
-
 /**
- * What the player says usually goes wrong maps onto the character who makes
- * that failure mode most visible: a conflict-prone manager meets the one who
- * escalates, someone whose people go quiet meets the one who withdraws, and
- * "we agree but nothing happens" meets the one who insists on written terms.
+ * «С кем тяжелее договариваться» это и есть направление разговора. Для
+ * начальства направление зависит от того, кто спрашивает: у руководителя
+ * отдела следующий уровень это директор, у остальных непосредственный
+ * начальник. Порядок в массиве и есть порядок предпочтения.
  */
-const OUTCOME_TO_TYPE: Record<string, PersonaType> = {
-  conflict: "aggressive",
-  went_silent: "anxious",
-  not_followed: "rational",
-};
-
-/** Fallback order when the mapped type has no persona in that scenario. */
-const TYPE_FALLBACK: PersonaType[] = ["rational", "anxious", "aggressive"];
-
-/**
- * Picks the starting case from quiz answers. Pure: give it the answers and the
- * level ids that actually exist, get back one id. Never returns an id that is
- * not in `availableLevelIds`.
- */
-export function matchLevelFromQuiz(answers: QuizAnswers, availableLevelIds: string[]): string {
-  const scenarioId = TOPIC_TO_SCENARIO[answers.topic ?? "just_practice"] ?? "s1-overload";
-  const prefix = scenarioId.split("-")[0];
-  const inScenario = availableLevelIds.filter((id) => id.startsWith(`${prefix}-`));
-  const pool = inScenario.length > 0 ? inScenario : availableLevelIds;
-
-  const wanted = OUTCOME_TO_TYPE[answers.outcome ?? ""] ?? "rational";
-  const order = [wanted, ...TYPE_FALLBACK.filter((t) => t !== wanted)];
-
-  for (const type of order) {
-    const hit = pool.find((id) => id.endsWith(`-${type}`));
-    if (hit) return hit;
+function directionsFor(answers: QuizAnswers): DirectionId[] {
+  switch (answers.counterpart) {
+    case "peers":
+      return ["peer"];
+    case "boss":
+      return answers.role === "dept_head" ? ["top", "up"] : ["up", "top"];
+    case "subordinates":
+      return ["down"];
+    default:
+      // Ответа нет: сотруднику ближе разговор наверх, руководителю вниз.
+      return answers.role === "employee" ? ["up", "peer"] : ["down", "peer"];
   }
-  return pool[0] ?? availableLevelIds[0];
+}
+
+/**
+ * Слова, по которым тема из опроса узнаётся в теме разговора. Совпадение
+ * необязательное: оно только поднимает кандидата внутри уже выбранного
+ * направления.
+ */
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  conflict: ["конфликт", "ответственн", "стык", "распределени"],
+  boss_communication: ["срок", "зарплат", "решени", "бюджет", "срыв"],
+  process_mess: ["перегруз", "нагрузк", "результат", "процесс", "дежурств", "задач"],
+  just_practice: [],
+};
+
+export interface MatchCandidate {
+  levelId: string;
+  direction: DirectionId;
+  topic: string;
+  title: string;
+}
+
+/**
+ * Подбирает первый разговор по ответам опроса.
+ *
+ * Сначала направление: с кем человеку тяжело, в ту сторону и разговор. Потом
+ * тема, но только внутри выбранного направления. Функция чистая и никогда не
+ * возвращает идентификатор, которого нет среди кандидатов.
+ */
+export function matchLevelFromQuiz(answers: QuizAnswers, candidates: MatchCandidate[]): string {
+  if (candidates.length === 0) return "";
+
+  const wanted = directionsFor(answers);
+  let pool: MatchCandidate[] = [];
+  for (const d of wanted) {
+    pool = candidates.filter((c) => c.direction === d);
+    if (pool.length > 0) break;
+  }
+  // Ни одного разговора в нужную сторону: роль могла закрыть направление
+  // целиком, и тогда подбираем из того, что человеку вообще доступно.
+  if (pool.length === 0) pool = candidates;
+
+  const words = TOPIC_KEYWORDS[answers.topic ?? "just_practice"] ?? [];
+  if (words.length > 0) {
+    const hit = pool.find((c) => {
+      const text = `${c.topic} ${c.title}`.toLowerCase();
+      return words.some((w) => text.includes(w));
+    });
+    if (hit) return hit.levelId;
+  }
+
+  return pool[0].levelId;
 }
 
 // ---------------------------------------------------------------------------

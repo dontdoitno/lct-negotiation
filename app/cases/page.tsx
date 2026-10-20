@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getUserId } from "@/lib/user";
 import { getCurrentUser } from "@/lib/auth";
 import { isHr } from "@/lib/access";
@@ -9,6 +10,8 @@ export default async function CasesPage() {
   const userId = await getUserId();
   // Роль решает, какие направления видно. У гостя роли нет: он видит всё.
   const user = await getCurrentUser();
+  // HR-контур (админ) сюда не попадает: его место — /admin.
+  if (isHr(user?.role)) redirect("/admin");
   const cases = await loadCases(userId, {
     role: user?.role ?? null,
     organizationId: user?.organizationId ?? null,
