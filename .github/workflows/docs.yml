@@ -44,6 +44,14 @@ jobs:
       # чтобы расхождение находилось в CI, а не читателем.
       - run: mkdocs build --strict
 
+      # mkdocs gh-deploy --no-history полностью заменяет содержимое ветки
+      # gh-pages, поэтому vercel.json из main в этой ветке не виден: Vercel
+      # читает его из коммита той ветки, которую собирает. Без своего
+      # vercel.json в gh-pages каждый пуш документации запускал там билд как
+      # Next.js-проект и падал с "No Next.js version detected".
+      - run: |
+          echo '{"$schema":"https://openapi.vercel.sh/vercel.json","git":{"deploymentEnabled":false}}' > site/vercel.json
+
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
