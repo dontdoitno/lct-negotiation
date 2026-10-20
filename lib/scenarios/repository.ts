@@ -66,7 +66,7 @@ function fromRow(row: Row): ScenarioDefinition {
 }
 
 /** Поля, которые пишутся в БД. Json приводится к структуре Prisma. */
-function toRowData(draft: ScenarioDraft) {
+export function toRowData(draft: ScenarioDraft) {
   return {
     title: draft.title,
     domain: draft.domain,

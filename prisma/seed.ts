@@ -16,6 +16,11 @@ import { PrismaClient } from "@prisma/client";
 import type { Persona, Scenario } from "../lib/engine/types";
 import { metricLevelFromValue, reactionLevelFromValue } from "../lib/scenarios/types";
 import type { ReactionMatrix, StartMetrics } from "../lib/scenarios/types";
+import { emptyDraft, applyTonePreset } from "../lib/scenarios/draft";
+import { applySituationPreset } from "../lib/scenarios/situations";
+import { toRowData } from "../lib/scenarios/repository";
+import type { Tone } from "../lib/scenarios/types";
+import type { GenerationId } from "../lib/scenarios/generations";
 
 const prisma = new PrismaClient();
 
@@ -215,9 +220,59 @@ const AVATAR_BY_PERSONA: Record<string, string> = {
   "s3-anxious": "avatar-3", // Ольга
 };
 
+/**
+ * Сценарии, собранные из заготовок конструктора.
+ *
+ * Шесть исходных приходят из файлов `content/`, эти семь из
+ * `SITUATION_PRESETS`: ситуация плюс первый рекомендованный характер из
+ * `inner_docs/SCENARIOUS.md`. Без этого на чистой машине каталог
+ * ограничивался бы шестью разговорами.
+ *
+ * Поколения в исходных документах по сценариям не заданы, значения здесь
+ * подобраны так, чтобы ось была видна и различалась внутри одной темы.
+ */
+const FROM_PRESETS: {
+  id: string;
+  preset: string;
+  tone: Tone;
+  generation: GenerationId;
+  avatar: string | null;
+}[] = [
+  { id: "s1-3", preset: "s1-3", tone: "rational", generation: "millennial", avatar: "avatar-2" },
+  { id: "s2-1", preset: "s2-1", tone: "rational", generation: "genx", avatar: "avatar-2" },
+  { id: "s2-2", preset: "s2-2", tone: "manipulative", generation: "zoomer", avatar: "avatar-1" },
+  { id: "s2-3", preset: "s2-3", tone: "aggressive", generation: "millennial", avatar: "avatar-2" },
+  { id: "s3-1", preset: "s3-1", tone: "rational", generation: "genx", avatar: "avatar-3" },
+  { id: "s5-1", preset: "s5-1", tone: "rational", generation: "genx", avatar: "avatar-2" },
+  { id: "s5-2", preset: "s5-2", tone: "manipulative", generation: "millennial", avatar: "avatar-1" },
+];
+
+async function seedFromPresets() {
+  for (const item of FROM_PRESETS) {
+    const existing = await prisma.scenarioDefinition.findUnique({ where: { id: item.id } });
+    if (existing) {
+      console.log(`  ${item.id}: уже есть`);
+      continue;
+    }
+    let draft = applySituationPreset(emptyDraft(), item.preset);
+    draft = applyTonePreset(draft, item.tone);
+    draft.generation = item.generation;
+    draft.avatar = item.avatar as typeof draft.avatar;
+
+    // toRowData объявлен с приведением к never ради типов Prisma для Json,
+    // поэтому здесь возвращаем его к объекту, чтобы разложить в data.
+    const row = toRowData(draft) as unknown as Record<string, unknown>;
+    await prisma.scenarioDefinition.create({
+      data: { id: item.id, ...row, status: "published" } as never,
+    });
+    console.log(`  ${item.id}: создан — ${draft.title}`);
+  }
+}
+
 async function main() {
   console.log("Сиды:");
   await seedScenarios();
+  await seedFromPresets();
   await seedUsers();
 }
 
