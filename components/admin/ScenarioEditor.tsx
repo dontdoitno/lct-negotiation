@@ -31,6 +31,7 @@ import {
 import { DIFFICULTY_PRESETS, DOMAIN_OPTIONS } from "@/lib/scenarios/presets";
 import { SITUATION_PRESETS, applySituationPreset } from "@/lib/scenarios/situations";
 import { GENERATION_PRESETS, GenerationId } from "@/lib/scenarios/generations";
+import { DIRECTION_ORDER, DIRECTION_PRESETS, DirectionId } from "@/lib/scenarios/directions";
 import {
   DifficultyPreset,
   METRIC_LEVEL_LABEL,
@@ -405,6 +406,35 @@ export function ScenarioEditor({
                 setShowIssues(false);
               }}
             />
+
+            <Field
+              label="Направление разговора"
+              hint="Категория в каталоге. Задаёт, у кого власть и какие приёмы работают."
+            >
+              <div className="flex flex-wrap gap-2">
+                {DIRECTION_ORDER.map((id) => {
+                  const d = DIRECTION_PRESETS[id];
+                  const selected = draft.direction === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => patch({ direction: id as DirectionId })}
+                      title={d.hint}
+                      className={`rounded-full border-[1.5px] px-3 py-1 text-[14px] motion-safe:transition-colors ${
+                        selected ? "border-accent bg-body text-primary" : "border-border text-secondary hover:border-border-strong"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <Text type="supporting" color="secondary" display="block">
+                {DIRECTION_PRESETS[draft.direction].hint} {DIRECTION_PRESETS[draft.direction].techniques}
+              </Text>
+            </Field>
 
             <ComboBox
               label="Сфера"

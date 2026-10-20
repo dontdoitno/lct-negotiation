@@ -26,10 +26,13 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             <Text type="supporting" color="disabled">
               {CASES.callLabel(data.callNumber)}
             </Text>
-            <LockIcon />
+            {data.assigned ? <AssignedBadge dueAt={data.dueAt} /> : <LockIcon />}
           </div>
           <DifficultyChip difficulty={data.difficulty} muted />
           <span className="block text-[19px] text-disabled">{data.displayName}</span>
+          <Text type="supporting" color="disabled" display="block">
+            {data.topic}
+          </Text>
           <div className="mt-auto max-w-40">
             <Text type="supporting" color="disabled" display="block">
               {CASES.lockedNote}
@@ -55,16 +58,24 @@ export function CaseTile({ data }: { data: CaseTileData }) {
             <Text type="supporting" color="secondary">
               {CASES.callLabel(data.callNumber)}
             </Text>
-            {recommended && (
-              <span className="shrink-0 rounded-full bg-inverted px-2.5 py-1 text-[12px] font-bold text-surface">
-                {CASES.recommendedBadge}
-              </span>
+            {data.assigned ? (
+              <AssignedBadge dueAt={data.dueAt} />
+            ) : (
+              recommended && (
+                <span className="shrink-0 rounded-full bg-inverted px-2.5 py-1 text-[12px] font-bold text-surface">
+                  {CASES.recommendedBadge}
+                </span>
+              )
             )}
           </div>
 
           <Heading level={3} maxLines={1}>
             {data.displayName}
           </Heading>
+
+          <Text type="supporting" color="secondary" display="block">
+            {data.topic}
+          </Text>
 
           <div className="flex items-center justify-between gap-3">
             <Text type="supporting" color="secondary">
@@ -110,6 +121,21 @@ function DifficultyChip({ difficulty, muted }: { difficulty: DifficultyPreset; m
       }`}
     >
       {DIFFICULTY_PRESETS[difficulty].label}
+    </span>
+  );
+}
+
+/**
+ * Пометка «назначено»: HR направил этот разговор конкретному человеку.
+ * Каталог при этом не запирается, назначенное просто идёт первым.
+ */
+function AssignedBadge({ dueAt }: { dueAt: string | null }) {
+  const due = dueAt
+    ? new Date(dueAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })
+    : null;
+  return (
+    <span className="shrink-0 rounded-full border border-accent px-2.5 py-0.5 text-[12px] text-accent">
+      {due ? `Назначено до ${due}` : "Назначено"}
     </span>
   );
 }

@@ -1,6 +1,7 @@
 import { ActionCode, MetricCode } from "@/lib/engine/types";
 import { AvatarId } from "./avatars";
 import { GenerationId } from "./generations";
+import { DirectionId } from "./directions";
 
 /**
  * Сценарий как данные. Раньше ситуация и собеседник лежали в двух файлах
@@ -58,6 +59,10 @@ export interface ScenarioDefinition {
   // 1. Контекст
   domain: string;
   topic: string;
+  /** Направление разговора. По нему каталог делится на категории. */
+  direction: DirectionId;
+  /** Компания-владелец. Пусто — сценарий общего каталога. */
+  organizationId?: string | null;
   playerRole: string;
   /** Роль собеседника в переговорах: сотрудник, покупатель, поставщик. */
   npcRole: string;
@@ -124,7 +129,7 @@ export interface ScenarioDefinition {
 /** Черновик из конструктора: id и служебные поля появляются при сохранении. */
 export type ScenarioDraft = Omit<
   ScenarioDefinition,
-  "id" | "status" | "playthroughCount" | "createdAt" | "updatedAt"
+  "id" | "status" | "playthroughCount" | "createdAt" | "updatedAt" | "organizationId"
 >;
 
 // ---------------------------------------------------------------------------

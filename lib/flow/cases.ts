@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { DirectionId } from "@/lib/scenarios/directions";
+import { directionsFor, directionsForGuest, type Role } from "@/lib/access";
 import { listRuntimeLevels } from "@/lib/scenarios/runtime";
 import { MetricCode, SessionState } from "@/lib/engine/types";
 import { DifficultyPreset, Tone } from "@/lib/scenarios/types";
@@ -11,6 +13,11 @@ export interface CaseBase {
   title: string;
   domain: string;
   topic: string;
+  direction: DirectionId;
+  /** Разговор назначен этому человеку: карточка помечается и идёт первой. */
+  assigned: boolean;
+  /** Срок, если HR его поставил. */
+  dueAt: Date | null;
   tone: Tone;
   difficulty: DifficultyPreset;
   /** Тип для подсказок подбора. Игроку не показывается. */
@@ -28,8 +35,35 @@ function better(metric: MetricCode, a: number, b: number) {
   return metric === "R" ? Math.min(a, b) : Math.max(a, b);
 }
 
-export async function loadCases(userId: string): Promise<CaseBase[]> {
-  const levels = await listRuntimeLevels();
+/**
+ * Каталог для конкретного человека.
+ *
+ * Роль решает, какие направления он видит: подчинённому незачем тренировать
+ * разговор с подчинённым, у него такого разговора не бывает. Назначенные HR
+ * разговоры не запирают каталог, а поднимаются наверх и помечаются.
+ *
+ * Гость роли не имеет и видит всё: это демонстрационный путь с лендинга.
+ */
+export async function loadCases(
+  userId: string,
+  options: { role?: Role | null; organizationId?: string | null } = {},
+): Promise<CaseBase[]> {
+  const all = await listRuntimeLevels();
+
+  const allowed = options.role ? directionsFor(options.role) : directionsForGuest();
+  const levels = all.filter((l) => {
+    if (!allowed.includes(l.definition.direction)) return false;
+    // Сценарий чужой компании в каталог не попадает. Пустая организация
+    // означает общий каталог и доступна всем.
+    const owner = l.definition.organizationId ?? null;
+    return owner === null || owner === (options.organizationId ?? null);
+  });
+
+  const assignments = await prisma.assignment.findMany({
+    where: { userId },
+    select: { scenarioId: true, dueAt: true },
+  });
+  const assignedBy = new Map(assignments.map((a) => [a.scenarioId, a.dueAt]));
 
   const finished = await prisma.session.findMany({
     // Тест-прогоны администратора в пользовательскую статистику не идут.
@@ -53,14 +87,17 @@ export async function loadCases(userId: string): Promise<CaseBase[]> {
     byLevel.set(s.personaId, entry);
   }
 
-  return levels.map((l, i) => {
+  const cases = levels.map((l, i) => {
     const agg = byLevel.get(l.levelId);
     return {
+      assigned: assignedBy.has(l.levelId),
+      dueAt: assignedBy.get(l.levelId) ?? null,
       levelId: l.levelId,
       callNumber: i + 1,
       title: l.definition.title,
       domain: l.definition.domain,
       topic: l.definition.topic,
+      direction: l.definition.direction,
       tone: l.definition.tone,
       difficulty: l.definition.difficultyPreset,
       // Тип личности едет на клиент только ради подсказок подбора: на карточке
@@ -71,4 +108,7 @@ export async function loadCases(userId: string): Promise<CaseBase[]> {
       bestMetrics: agg && Object.keys(agg.best).length > 0 ? agg.best : null,
     };
   });
+
+  // Назначенное идёт первым, внутри групп порядок сохраняется.
+  return cases.sort((a, b) => Number(b.assigned) - Number(a.assigned));
 }

@@ -8,6 +8,7 @@ import { splitContext, toPersona, toScenario } from "@/lib/scenarios/adapters";
 import { hiddenPreview, playerPreview } from "@/lib/scenarios/preview";
 import { TONE_PRESETS } from "@/lib/scenarios/presets";
 import { GENERATION_PRESETS } from "@/lib/scenarios/generations";
+import { DIRECTION_ORDER, DIRECTION_PRESETS, DIRECTION_BY_LABEL } from "@/lib/scenarios/directions";
 import { renderPrompt } from "@/lib/scenarios/promptRender";
 import { ScenarioDefinition } from "@/lib/scenarios/types";
 import { applyTurn, createInitialState } from "@/lib/engine/state";
@@ -28,6 +29,7 @@ function makeScenario(overrides: Partial<ScenarioDefinition> = {}): ScenarioDefi
     npcBackstory: "Ты не вывозишь объём и боишься сказать об этом прямо.",
     avatar: null,
     generation: null,
+    direction: "down",
     tone: "anxious",
     characterNote: preset.characterNote,
     temperament: preset.temperament,
@@ -431,5 +433,33 @@ describe("поколения", () => {
     const shown = JSON.stringify(playerPreview(makeScenario({ generation: "genx" })));
     expect(shown).not.toContain("Поколение");
     expect(shown).not.toContain("genx");
+  });
+});
+
+// --- Направление разговора -------------------------------------------------
+
+describe("направление разговора", () => {
+  it("каждая заготовка ситуации переносит направление в черновик", () => {
+    for (const preset of SITUATION_PRESETS) {
+      const draft = applySituationPreset(emptyDraft(), preset.id);
+      expect(DIRECTION_ORDER, `${preset.id}: направление «${draft.direction}» неизвестно`)
+        .toContain(draft.direction);
+      expect(draft.direction, preset.id).toBe(DIRECTION_BY_LABEL[preset.direction]);
+    }
+  });
+
+  it("у всех пяти направлений есть подпись, подсказка и приёмы", () => {
+    expect(DIRECTION_ORDER.length).toBe(5);
+    for (const id of DIRECTION_ORDER) {
+      const d = DIRECTION_PRESETS[id];
+      expect(d.label, id).toBeTruthy();
+      expect(d.hint.length, id).toBeGreaterThan(30);
+      expect(d.techniques, id).toBeTruthy();
+    }
+  });
+
+  it("направления покрывают все заготовки: ни одна не осталась без категории", () => {
+    const used = new Set(SITUATION_PRESETS.map((p) => DIRECTION_BY_LABEL[p.direction]));
+    expect([...used].every((d) => DIRECTION_ORDER.includes(d!))).toBe(true);
   });
 });

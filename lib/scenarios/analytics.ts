@@ -20,14 +20,33 @@ export interface ScenarioStats {
 
 const METRICS: MetricCode[] = ["A", "T", "R", "I", "S", "C"];
 
-export async function loadScenarioStats(): Promise<ScenarioStats[]> {
-  const [scenarios, sessions] = await Promise.all([
+/**
+ * Статистика по сценариям в рамках одной компании.
+ *
+ * Организация обязательна: без неё HR видел бы прохождения чужих сотрудников.
+ * В выборку попадают только сессии людей своей компании и только сценарии,
+ * доступные ей — общие плюс собственные.
+ */
+export async function loadScenarioStats(organizationId: string): Promise<ScenarioStats[]> {
+  const members = await prisma.user.findMany({
+    where: { organizationId },
+    select: { id: true },
+  });
+  const memberIds = members.map((m) => m.id);
+
+  const [all, sessions] = await Promise.all([
     listScenarios(),
     prisma.session.findMany({
-      where: { isTestRun: false, status: { in: ["success", "failed", "timeout", "stopped"] } },
+      where: {
+        userId: { in: memberIds },
+        isTestRun: false,
+        status: { in: ["success", "failed", "timeout", "stopped"] },
+      },
       select: { personaId: true, status: true, state: true },
     }),
   ]);
+
+  const scenarios = all.filter((s) => !s.organizationId || s.organizationId === organizationId);
 
   return scenarios.map((scenario) => {
     const own = sessions.filter((s) => s.personaId === scenario.id);

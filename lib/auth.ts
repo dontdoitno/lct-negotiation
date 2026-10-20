@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
+import { isHr, isRole, type Role } from "@/lib/access";
 
 /**
  * Аутентификация ровно в том объёме, который нужен админскому контуру: две
@@ -14,12 +15,16 @@ import { prisma } from "@/lib/db";
 const SESSION_COOKIE = "session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
-export type Role = "user" | "admin";
+// Роли и то, что им доступно, живут в lib/access.ts: ими пользуется не только
+// авторизация, но и фильтр каталога.
+export type { Role } from "@/lib/access";
 
 export interface CurrentUser {
   id: string;
   email: string;
   role: Role;
+  /** Пусто у демонстрационных аккаунтов вне компаний. */
+  organizationId: string | null;
   displayName: string | null;
 }
 
@@ -95,7 +100,13 @@ export async function signIn(email: string, password: string): Promise<CurrentUs
     secure: process.env.NODE_ENV === "production",
   });
 
-  return { id: user.id, email: user.email, role: user.role as Role, displayName: user.displayName };
+  return {
+    id: user.id,
+    email: user.email,
+    role: isRole(user.role) ? user.role : "employee",
+    organizationId: user.organizationId,
+    displayName: user.displayName,
+  };
 }
 
 export async function signOut(): Promise<void> {
@@ -114,10 +125,17 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
 
-  return { id: user.id, email: user.email, role: user.role as Role, displayName: user.displayName };
+  return {
+    id: user.id,
+    email: user.email,
+    role: isRole(user.role) ? user.role : "employee",
+    organizationId: user.organizationId,
+    displayName: user.displayName,
+  };
 }
 
+/** HR-контур. Имя функции осталось от прежних двух ролей. */
 export async function isAdmin(): Promise<boolean> {
   const user = await getCurrentUser();
-  return user?.role === "admin";
+  return isHr(user?.role);
 }

@@ -122,6 +122,7 @@ async function seedScenarios() {
         topic: scenario.title,
         playerRole: scenario.playerRoleDescription ?? scenario.playerRole,
         npcRole: "Сотрудник",
+        direction: "down",
         context: contextLines(scenario, persona),
         npcName: persona.displayName,
         npcPosition: persona.position,

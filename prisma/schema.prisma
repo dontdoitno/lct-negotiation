@@ -13,6 +13,19 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+/// Компания. Всё, что видит HR, ограничено её рамками: люди, назначения,
+/// прогресс и аналитика. Сценарии общего каталога организации не принадлежат.
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  /// Код для самостоятельной регистрации сотрудника. Короткий и читаемый.
+  joinCode  String   @unique
+  createdAt DateTime @default(now())
+
+  members   User[]
+  scenarios ScenarioDefinition[]
+}
+
 /// Аккаунт. До появления админки пользователь опознавался только анонимной
 /// cookie uid; она осталась для гостей, а записи в этой таблице нужны там, где
 /// важна роль. Поле id совпадает со значением cookie, поэтому прогресс гостя
@@ -21,9 +34,37 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
-  role         String   @default("user") // user | admin
+  /// employee — играет разговоры снизу вверх, manager — сверху вниз,
+  /// hr — заводит людей, назначает разговоры и смотрит аналитику своей компании.
+  role         String   @default("employee") // employee | manager | hr
   displayName  String?
+  /// Пусто у гостя и у демонстрационных аккаунтов вне компаний.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   createdAt    DateTime @default(now())
+
+  assignments      Assignment[] @relation("assignedTo")
+  assignmentsMade  Assignment[] @relation("assignedBy")
+
+  @@index([organizationId])
+}
+
+/// Разговор, назначенный человеку. Каталог не запирает: назначенное просто
+/// поднимается наверх и помечается. Запись живёт, пока её не снимут.
+model Assignment {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation("assignedTo", fields: [userId], references: [id])
+  scenarioId   String
+  scenario     ScenarioDefinition @relation(fields: [scenarioId], references: [id])
+  assignedById String
+  assignedBy   User     @relation("assignedBy", fields: [assignedById], references: [id])
+  /// Необязательный срок. Показывается сотруднику на карточке.
+  dueAt        DateTime?
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, scenarioId])
+  @@index([userId])
 }
 
 /// Сценарий целиком: ситуация вместе с собеседником. Раньше это была пара
@@ -32,10 +73,16 @@ model User {
 model ScenarioDefinition {
   id    String @id @default(cuid())
   title String
+  /// Пусто — сценарий общего каталога, доступен всем компаниям. Иначе он
+  /// принадлежит одной компании, и чужой HR его не видит.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
 
   // Секция 1. Контекст
   domain     String
   topic      String
+  /// Направление разговора: кто с кем и у кого власть. Категория в каталоге.
+  direction  String @default("down") // down | up | peer | mediation | top
   playerRole String
   npcRole    String @default("Сотрудник")
   /// Ситуация глазами игрока, от третьего лица. Показывается в брифинге.
@@ -103,8 +150,11 @@ model ScenarioDefinition {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  assignments Assignment[]
+
   @@index([status])
   @@index([domain, topic])
+  @@index([organizationId])
 }
 
 model Session {

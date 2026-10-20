@@ -19,7 +19,16 @@ const GAP = 16;
  * Лента не прячет карточки за кнопкой «показать ещё»: горизонтальная прокрутка
  * сохраняет ощущение, что весь набор на месте, просто не влезает в экран.
  */
-export function TopicRow({ topic, items }: { topic: string; items: CaseTileData[] }) {
+export function TopicRow({
+  topic,
+  hint,
+  items,
+}: {
+  topic: string;
+  /** Чем это направление отличается. Короткая строка под заголовком. */
+  hint?: string;
+  items: CaseTileData[];
+}) {
   const scroller = useRef<HTMLUListElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
@@ -60,7 +69,14 @@ export function TopicRow({ topic, items }: { topic: string; items: CaseTileData[
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-4">
-        <Heading level={2}>{topic}</Heading>
+        <div className="min-w-0">
+          <Heading level={2}>{topic}</Heading>
+          {hint && (
+            <Text type="supporting" color="secondary" display="block">
+              {hint}
+            </Text>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <Text type="supporting" color="disabled">
             {CASES.callCount(items.length)}

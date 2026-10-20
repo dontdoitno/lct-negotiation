@@ -15,6 +15,7 @@ import { DomainRail } from "./DomainRail";
 import { TopicRow } from "./TopicRow";
 import { FilterState, EMPTY_FILTERS } from "./filters";
 import { useIsNarrow } from "@/lib/ui/useIsNarrow";
+import { DIRECTION_ORDER, DIRECTION_PRESETS, DirectionId } from "@/lib/scenarios/directions";
 import { MetricRadar } from "@/components/ui/MetricRadar";
 import { MetricCode } from "@/lib/engine/types";
 
@@ -57,6 +58,9 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
         title: c.title,
         domain: c.domain,
         topic: c.topic,
+        direction: c.direction,
+        assigned: c.assigned,
+        dueAt: c.dueAt ? c.dueAt.toISOString() : null,
         tone: c.tone,
         difficulty: c.difficulty,
         personaType: c.personaType,
@@ -87,15 +91,27 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
     });
   }, [tiles, filters]);
 
-  /** Группы по теме. Тема с разными характерами и есть матрица «ситуация × характер». */
-  const topics = useMemo(() => {
-    const map = new Map<string, CaseTileData[]>();
+  /**
+   * Группы по направлению разговора: вниз, вверх, вбок, медиация, топ.
+   *
+   * Раньше каталог делился по темам, но тема говорит только о чём разговор.
+   * Направление говорит, у кого власть, а от этого зависит, какие приёмы
+   * работают: на равного приказ не действует, со старшим нужны факты.
+   * Порядок фиксированный, от привычного руководителю к непривычному.
+   */
+  const groups = useMemo(() => {
+    const map = new Map<DirectionId, CaseTileData[]>();
     for (const t of visible) {
-      const list = map.get(t.topic) ?? [];
+      const list = map.get(t.direction) ?? [];
       list.push(t);
-      map.set(t.topic, list);
+      map.set(t.direction, list);
     }
-    return [...map.entries()].map(([topic, items]) => ({ topic, items }));
+    return DIRECTION_ORDER.filter((d) => map.has(d)).map((d) => ({
+      id: d,
+      title: DIRECTION_PRESETS[d].label,
+      hint: DIRECTION_PRESETS[d].hint,
+      items: map.get(d)!,
+    }));
   }, [visible]);
 
   const accumulated = useMemo(() => {
@@ -199,7 +215,7 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
             </Card>
           )}
 
-          {topics.length === 0 ? (
+          {groups.length === 0 ? (
             <div className="py-10">
               <Text as="p" display="block" color="secondary">
                 {CASES.nothingFound}
@@ -215,8 +231,13 @@ export function CasesBoard({ cases, isAdmin }: { cases: CaseBase[]; isAdmin: boo
             </div>
           ) : (
             <div className="flex flex-col gap-10">
-              {topics.map((group) => (
-                <TopicRow key={group.topic} topic={group.topic} items={group.items} />
+              {groups.map((group) => (
+                <TopicRow
+                  key={group.id}
+                  topic={group.title}
+                  hint={group.hint}
+                  items={group.items}
+                />
               ))}
             </div>
           )}

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Text } from "@astryxdesign/core/Text";
 import { getCurrentUser } from "@/lib/auth";
+import { isHr } from "@/lib/access";
 import { ADMIN } from "@/lib/flow/copy";
 
 /**
@@ -12,7 +13,7 @@ import { ADMIN } from "@/lib/flow/copy";
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  if (user?.role !== "admin") redirect("/cases");
+  if (!user || !isHr(user.role)) redirect("/cases");
 
   return (
     <div className="min-h-screen bg-body text-primary">
@@ -22,6 +23,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin">
               <Text type="label" weight="bold">
                 {ADMIN.sectionTitle}
+              </Text>
+            </Link>
+            <Link href="/admin/people">
+              <Text type="supporting" color="secondary">
+                Люди
               </Text>
             </Link>
             <Link href="/admin/analytics">

@@ -1,5 +1,6 @@
 import { Heading, Text } from "@astryxdesign/core/Text";
 import { loadScenarioStats } from "@/lib/scenarios/analytics";
+import { getCurrentUser } from "@/lib/auth";
 import { METRIC_META } from "@/lib/engine/labels";
 import { MetricCode } from "@/lib/engine/types";
 
@@ -8,7 +9,26 @@ export const dynamic = "force-dynamic";
 const METRICS: MetricCode[] = ["A", "T", "R", "I", "S", "C"];
 
 export default async function AnalyticsPage() {
-  const stats = await loadScenarioStats();
+  // Статистика считается по своей компании: иначе HR видел бы прохождения
+  // сотрудников других организаций.
+  const user = await getCurrentUser();
+  if (!user?.organizationId) {
+    return (
+      <main className="mx-auto max-w-reading px-6 py-10">
+        <Heading level={1} type="display-3">
+          Аккаунт не привязан к компании
+        </Heading>
+        <div className="mt-3">
+          <Text as="p" display="block" color="secondary">
+            Аналитика считается внутри организации. Этот аккаунт создавался до
+            появления компаний.
+          </Text>
+        </div>
+      </main>
+    );
+  }
+
+  const stats = await loadScenarioStats(user.organizationId);
   const anyPlaythroughs = stats.some((s) => s.playthroughs > 0);
 
   return (

@@ -9,11 +9,14 @@ import { Link } from "@astryxdesign/core/Link";
 import { SIGNUP } from "@/lib/flow/copy";
 import { continueAsGuest } from "@/lib/flow/store";
 import { validateEmail, validatePassword } from "@/lib/flow/validation";
+import { PlayableRole, RoleChips } from "@/components/ui/RoleChips";
 
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<PlayableRole>("employee");
+  const [joinCode, setJoinCode] = useState("");
   const [errors, setErrors] = useState<{ email?: string | null; password?: string | null }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -28,9 +31,20 @@ export default function SignupPage() {
     setSubmitting(true);
     setServerError(null);
     try {
-      // No accounts backend yet; the guest path is what actually carries the
-      // flow today, so this resolves and moves on rather than faking success.
-      await new Promise((r) => setTimeout(r, 400));
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, role, joinCode: joinCode.trim() || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setServerError(data?.error ?? SIGNUP.errors.server);
+        setSubmitting(false);
+        return;
+      }
+      // Роль пришла с сервера вместе с сессией, поэтому каталог сразу
+      // отдаётся уже отфильтрованным под неё.
+      router.refresh();
       router.push("/rules");
     } catch {
       setServerError(SIGNUP.errors.server);
@@ -85,6 +99,21 @@ export default function SignupPage() {
           isDisabled={submitting}
           autoComplete="new-password"
         />
+
+        <RoleChips label={SIGNUP.roleLabel} value={role} onChange={setRole} isDisabled={submitting} />
+
+        <div className="flex flex-col gap-1">
+          <TextInput
+            label={SIGNUP.joinCode}
+            value={joinCode}
+            onChange={setJoinCode}
+            isDisabled={submitting}
+            autoComplete="off"
+          />
+          <Text type="supporting" color="secondary" display="block">
+            {SIGNUP.joinCodeHint}
+          </Text>
+        </div>
 
         {serverError && (
           <Text as="p" color="accent" role="alert">

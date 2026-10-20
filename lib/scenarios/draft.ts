@@ -27,6 +27,7 @@ export function emptyDraft(): ScenarioDraft {
     npcBackstory: "",
     avatar: null,
     generation: null,
+    direction: "down",
     tone: "rational",
     characterNote: preset.characterNote,
     temperament: preset.temperament,

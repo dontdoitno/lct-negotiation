@@ -1,4 +1,5 @@
 import { MetricCode } from "@/lib/engine/types";
+import { DirectionId } from "@/lib/scenarios/directions";
 
 // ---------------------------------------------------------------------------
 // Quiz
@@ -35,6 +36,10 @@ export interface CaseTileData {
   title: string;
   domain: string;
   topic: string;
+  direction: DirectionId;
+  /** Назначено HR: карточка помечается. */
+  assigned: boolean;
+  dueAt: string | null;
   tone:
     | "aggressive"
     | "anxious"

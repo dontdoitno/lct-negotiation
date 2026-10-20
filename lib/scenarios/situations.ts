@@ -1,4 +1,5 @@
 import { ScenarioDraft, DifficultyPreset, Initiator } from "./types";
+import { DIRECTION_BY_LABEL } from "./directions";
 
 /**
  * Готовые ситуации для конструктора.
@@ -853,9 +854,18 @@ export const SITUATION_PRESETS: SituationPreset[] = [
   },
 ];
 
-/** Накладывает ситуацию на черновик, не трогая характер и матрицу реакций. */
+/**
+ * Накладывает ситуацию на черновик, не трогая характер и матрицу реакций.
+ *
+ * Направление переносится отдельно: у заготовки оно подписано по-русски для
+ * списка, а сценарию нужен идентификатор, по которому каталог делит категории.
+ */
 export function applySituationPreset(draft: ScenarioDraft, presetId: string): ScenarioDraft {
   const preset = SITUATION_PRESETS.find((p) => p.id === presetId);
   if (!preset) return draft;
-  return { ...draft, ...structuredClone(preset.fields) };
+  return {
+    ...draft,
+    ...structuredClone(preset.fields),
+    direction: DIRECTION_BY_LABEL[preset.direction] ?? draft.direction,
+  };
 }
